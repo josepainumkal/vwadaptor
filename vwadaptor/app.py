@@ -12,8 +12,10 @@ from vwadaptor.extensions import (
     migrate,
     debug_toolbar,
 )
-from vwadaptor import public, user
+from vwadaptor import public, user, modelrun
 from vwadaptor.user.models import User
+from vwadaptor.modelrun.models import ModelRun
+
 
 def create_app(config_object=ProdConfig):
     """An application factory, as explained here:
@@ -45,11 +47,13 @@ def register_api(app,db):
     apimanager = APIManager(app, flask_sqlalchemy_db=db)
     #apimanager.create_api(Person, methods=['GET', 'POST', 'DELETE'])
     apimanager.create_api(User, methods=['GET', 'POST','PUT', 'DELETE'])
+    apimanager.create_api(ModelRun, methods=['GET', 'POST','PUT', 'DELETE'])
 
 
 def register_blueprints(app):
     app.register_blueprint(public.views.blueprint)
     app.register_blueprint(user.views.blueprint)
+    app.register_blueprint(modelrun.views.blueprint)
     return None
 
 

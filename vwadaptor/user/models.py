@@ -26,6 +26,8 @@ class User(SurrogatePK, Model, UserMixin):
     active = Column(db.Boolean(), default=False)
     is_admin = Column(db.Boolean(), default=False)
 
+    modelruns = relationship('ModelRun', backref='user', lazy='dynamic')
+
     def __init__(self,**kwargs):
         db.Model.__init__(self, **kwargs)
         if 'password' in kwargs:
