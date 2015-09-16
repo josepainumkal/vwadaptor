@@ -9,6 +9,7 @@ from vwadaptor.database import (
     SurrogatePK
 )
 
+from vwadaptor.constants import PROGRESS_STATES
 #from marshmallow import Schema, fields, pprint
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -22,8 +23,8 @@ class ModelRun(SurrogatePK, Model):
     resources = relationship('ModelResource', backref='modelrun', lazy='dynamic')
     #progress = relationship('ModelProgress', uselist=False,backref='progress')
     user_id = Column(db.Integer, db.ForeignKey('users.id'),nullable=False)
-
-    progress_state = Column('state', db.Enum('not_started','queued', 'running','finished','error'), default='not_started')
+    #'not_started','queued', 'running','finished','error'
+    progress_state = Column('state', db.Enum(*tuple(PROGRESS_STATES.values())), default=PROGRESS_STATES['NOT_STARTED'])
     progress_value = Column(db.Float(10), nullable=True, unique=True,default=0.0)
 
     # @hybrid_property
