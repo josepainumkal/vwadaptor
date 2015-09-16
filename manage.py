@@ -7,6 +7,7 @@ from flask_migrate import MigrateCommand
 
 from vwadaptor.app import create_app
 from vwadaptor.user.models import User
+from vwadaptor.modelrun.models import ModelRun
 from vwadaptor.settings import DevConfig, ProdConfig
 from vwadaptor.database import db
 
@@ -25,7 +26,7 @@ def _make_context():
     """Return context dict for a shell session so you can access
     app, db, and the User model by default.
     """
-    return {'app': app, 'db': db, 'User': User}
+    return {'app': app, 'db': db, 'User': User,'ModelRun':ModelRun}
 
 
 @manager.command
