@@ -9,3 +9,8 @@ blueprint = Blueprint("user", __name__, url_prefix='/users',
 @login_required
 def members():
     return render_template("users/member.html")
+
+@blueprint.route("/<int:id>/status")
+#@login_required
+def get_by_status(id):
+    pass

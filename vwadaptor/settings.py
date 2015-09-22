@@ -13,7 +13,7 @@ class Config(object):
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     DEBUG_TB_INTERCEPT_REDIRECTS = False
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
-
+    UPLOAD_FOLDER = '/home/escenic/vwuploads'
 
 class ProdConfig(Config):
     """Production configuration."""

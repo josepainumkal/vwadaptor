@@ -10,21 +10,20 @@ from vwadaptor.database import (
     SurrogatePK
 )
 from flask.ext.login import UserMixin
-
-
+#from marshmallow import Schema, fields, pprint
 
 class User(SurrogatePK, Model, UserMixin):
 
     __tablename__ = 'users'
     username = Column(db.String(80), unique=True, nullable=False)
-    email = Column(db.String(80), unique=True, nullable=False)
+    username = Column(db.String(80), unique=True, nullable=False)
     #: The hashed password
     password = Column(db.String(128), nullable=True)
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
     first_name = Column(db.String(30), nullable=True)
     last_name = Column(db.String(30), nullable=True)
     active = Column(db.Boolean(), default=False)
-    is_admin = Column(db.Boolean(), default=False)
+    #is_admin = Column(db.Boolean(), default=False)
 
     modelruns = relationship('ModelRun', backref='user', lazy='dynamic')
 
@@ -40,3 +39,13 @@ class User(SurrogatePK, Model, UserMixin):
 
     def check_password(self, value):
         return bcrypt.check_password_hash(self.password, value)
+
+
+# class UserSchema(Schema):
+#     id = fields.Integer()
+#     username = fields.String()
+#     username = fields.String()
+#     first_name = fields.String()
+#     last_name = fields.String()
+#     created_at = fields.DateTime()
+#     modelruns = fields.Nested(ModelRunSchema,many=True)
