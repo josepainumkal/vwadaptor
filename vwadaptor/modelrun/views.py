@@ -15,8 +15,6 @@ from vwadaptor.constants import PROGRESS_STATES
 from vwadaptor.constants import PROGRESS_STATES_MSG
 from vwadaptor.helpers import get_relationships_map, generate_file_name
 
-from wcwave_adaptors import default_vw_client
-
 import json
 
 
@@ -48,8 +46,8 @@ def upload(id):
 
   err = {"message":"Erorr Occured"}
   return jsonify(err), 500
-      
 
+      
 @blueprint.route("/<int:id>/start",methods=['PUT'])
 #@login_required
 def start(id):

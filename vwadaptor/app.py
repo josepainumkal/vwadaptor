@@ -14,7 +14,7 @@ from vwadaptor.extensions import (
     migrate,
     debug_toolbar,
 )
-from vwadaptor import public, user, modelrun
+from vwadaptor import public, user, modelrun, modelresource
 from vwadaptor.user.models import User
 from vwadaptor.modelrun.models import ModelRun, ModelResource
 
@@ -82,6 +82,7 @@ def register_blueprints(app):
     app.register_blueprint(public.views.blueprint)
     app.register_blueprint(user.views.blueprint)
     app.register_blueprint(modelrun.views.blueprint)
+    app.register_blueprint(modelresource.views.blueprint)
     return None
 
 def create_directories(app):
