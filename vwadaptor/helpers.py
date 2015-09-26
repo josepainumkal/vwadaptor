@@ -67,9 +67,13 @@ def model_run_after_get_many(result=None, search_params=None, **kw):
 def model_run_before_delete(instance_id,**kw):
   modelrun = ModelRun.query.get(instance_id)
   if modelrun:
-    for resource in modelrun.resources:
-      model_resource_before_delete(resource.id)
-      resource.delete()
+    if modelrun.resources:
+      for resource in modelrun.resources:
+        model_resource_before_delete(resource.id)
+        resource.delete()
+    if modelrun.progress_events:
+      for event in modelrun.progress_events:
+        event.delete()
 
 def model_resource_before_delete(instance_id,**kw):
   resource = ModelResource.query.get(instance_id)

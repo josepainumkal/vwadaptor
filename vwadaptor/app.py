@@ -16,7 +16,7 @@ from vwadaptor.extensions import (
 )
 from vwadaptor import public, user, modelrun, modelresource
 from vwadaptor.user.models import User
-from vwadaptor.modelrun.models import ModelRun, ModelResource
+from vwadaptor.modelrun.models import ModelRun, ModelResource, ModelProgress
 
 from vwadaptor.helpers import modelresource_serializer, modelrun_serializer,user_serializer
 from vwadaptor.helpers import model_resource_before_delete, model_run_before_delete, model_run_after_get_many
@@ -75,6 +75,9 @@ def register_api(app,db):
             'DELETE_SINGLE':[model_resource_before_delete]
         },
         exclude_columns=['resource_location']
+    ),
+    apimanager.create_api(ModelProgress, 
+        methods=['GET', 'POST','PUT', 'DELETE'],
     )
 
 
