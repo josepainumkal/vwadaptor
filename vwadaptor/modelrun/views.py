@@ -13,7 +13,7 @@ from sqlalchemy.inspection import inspect
 from vwadaptor.modelrun.models import ModelRun,ModelResource
 from vwadaptor.constants import PROGRESS_STATES
 from vwadaptor.constants import PROGRESS_STATES_MSG
-from vwadaptor.helpers import get_relationships_map, generate_file_name
+from vwadaptor.helpers import get_relationships_map, generate_file_name, modelresource_serializer
 from vwadaptor.validators import modelresource_form_schema
 
 from voluptuous import MultipleInvalid 
@@ -45,7 +45,7 @@ def upload(id):
           m = {'modelrun_id':id,'resource_type':resource_type,'resource_location':resource_loc,'resource_size':resource_size}
           resource = ModelResource.create(**m)
 
-          msg = {"message":"Resource create for model run "+str(id),'resource':to_dict(resource,exclude='resource_location')}
+          msg = {"message":"Resource create for model run "+str(id),'resource':modelresource_serializer(resource)}
           return jsonify(msg), 201
 
   err = {"message":"Erorr Occured"}
@@ -54,6 +54,9 @@ def upload(id):
 @blueprint.route("/<int:id>/upload/fromurl",methods=['POST'])
 #@login_required
 def upload_from_url(id):
+  '''
+    expects json. expects url,filename,resource_type
+  '''
   modelrun = ModelRun.query.get(id)
   if modelrun:
     if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
@@ -76,7 +79,7 @@ def upload_from_url(id):
         resource_size = os.stat(resource_loc).st_size
         m = {'modelrun_id':id,'resource_type':data['resource_type'],'resource_location':resource_loc,'resource_size':resource_size}
         resource = ModelResource.create(**m)
-        return jsonify({'message':"Resource create for model run "+str(id),'resource':to_dict(resource,exclude='resource_location')}), 201
+        return jsonify({'message':"Resource create for model run "+str(id),'resource':modelresource_serializer(resource)}), 201
       except Exception, e:
         print e
         return jsonify({'message':'Couldn\'t get file from url.'}), 400
