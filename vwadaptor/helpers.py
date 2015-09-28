@@ -54,8 +54,8 @@ def modelrun_deserializer(data):
     return modelrun_schema.load(data).data
 
 
-#def modelresource_deserializer(data):
-#    return modelresource_schema.load(data).data
+def modelresource_deserializer(data):
+    return modelresource_schema.load(data).data
 
 
 
@@ -74,6 +74,20 @@ def model_run_before_delete(instance_id,**kw):
     if modelrun.progress_events:
       for event in modelrun.progress_events:
         event.delete()
+
+#def model_run_before_delete_many(search_params=None,**kw):
+#  print search_params
+  # modelruns = ModelRun.query.filter_by(search_params).all()
+  # if modelruns:
+  #   for modelrun in modelruns:
+  #     if modelrun.resources:
+  #       for resource in modelrun.resources:
+  #         model_resource_before_delete(resource.id)
+  #         resource.delete()
+  #     if modelrun.progress_events:
+  #       for event in modelrun.progress_events:
+  #         event.delete()
+
 
 def model_resource_before_delete(instance_id,**kw):
   resource = ModelResource.query.get(instance_id)

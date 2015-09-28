@@ -4,11 +4,6 @@ from marshmallow import Schema, fields, pprint
 from flask import current_app as app
 from flask import url_for
 
-class ResourceUrl(fields.Field):
-    def _serialize(self, value, attr, obj):
-        if value is None:
-            return ''
-        return value.title()
 
 class ModelProgressSchema(Schema):
     id = fields.Integer()
@@ -23,11 +18,10 @@ class ModelResourceSchema(Schema):
     id = fields.Integer()
     resource_type = fields.String()
     resource_size = fields.Integer()
-    #resource_name = fields.String()
     modelrun_id = fields.Integer()
     resource_name = fields.Function(lambda obj: os.path.basename(obj.resource_location))
-    resource_url = fields.Function(lambda obj: 
-        url_for('modelresource.download_resource_by_name',name=os.path.basename(obj.resource_location),_external=True))
+    #resource_x = fields.Function(lambda obj: os.path.basename(obj.resource_location))
+    resource_url = fields.String()
     created_at = fields.DateTime()
     #def make_object(self, data):
     #    return ModelResource(**data)

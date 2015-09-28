@@ -10,6 +10,8 @@ from vwadaptor.database import (
     SurrogatePK
 )
 
+from flask import url_for
+
 from vwadaptor.constants import PROGRESS_STATES
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -44,6 +46,11 @@ class ModelResource(SurrogatePK, Model):
     @hybrid_property
     def resource_name(self):
         return os.path.basename(self.resource_location)
+
+    @hybrid_property
+    def resource_url(self):
+        return url_for('modelresource.download_resource_by_name',
+            name=os.path.basename(self.resource_location),_external=True)
 
     def __init__(self, **kwargs):
         db.Model.__init__(self, **kwargs)
