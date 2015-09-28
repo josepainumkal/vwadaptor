@@ -14,8 +14,12 @@ from vwadaptor.modelrun.models import ModelRun,ModelResource
 from vwadaptor.constants import PROGRESS_STATES
 from vwadaptor.constants import PROGRESS_STATES_MSG
 from vwadaptor.helpers import get_relationships_map, generate_file_name
+from vwadaptor.validators import modelresource_form_schema
+
+from voluptuous import MultipleInvalid 
 
 import json
+import requests
 
 
 blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
@@ -46,6 +50,41 @@ def upload(id):
 
   err = {"message":"Erorr Occured"}
   return jsonify(err), 500
+
+@blueprint.route("/<int:id>/upload/fromurl",methods=['POST'])
+#@login_required
+def upload_from_url(id):
+  modelrun = ModelRun.query.get(id)
+  if modelrun:
+    if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
+      try:
+        data = json.loads(request.get_data())
+      except ValueError:
+        return jsonify({'message':'Please specify valid json'}), 400
+      
+      try:
+        modelresource_form_schema(data)
+      except MultipleInvalid as e:
+        return jsonify({'message':e.error_message}), 400
+
+      try:
+        filedata = requests.get(data['url'])
+        resource_loc = os.path.join(app.config['UPLOAD_FOLDER'], data['filename'])
+        resource_loc =  os.path.join(app.config['UPLOAD_FOLDER'], generate_file_name(resource_loc))
+        with app.open_instance_resource(resource_loc, 'wb') as f:
+            f.write(filedata.content)
+        resource_size = os.stat(resource_loc).st_size
+        m = {'modelrun_id':id,'resource_type':data['resource_type'],'resource_location':resource_loc,'resource_size':resource_size}
+        resource = ModelResource.create(**m)
+        return jsonify({'message':"Resource create for model run "+str(id),'resource':to_dict(resource,exclude='resource_location')}), 201
+      except Exception, e:
+        print e
+        return jsonify({'message':'Couldn\'t get file from url.'}), 400
+
+    else:
+        return jsonify({'message':'Uploading resources to new modelrun is permitted only'}), 400  
+  err = {"message":"Invalid modlerun id supplied"}
+  return jsonify(err), 400
 
       
 @blueprint.route("/<int:id>/start",methods=['PUT'])
