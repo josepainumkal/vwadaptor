@@ -21,10 +21,10 @@ def generate_file_name(filepath):
     i=1
     dirname = os.path.dirname(filepath)
     filename = os.path.basename(filepath)
-    filename =filename.split('.')[0] + str(i)+'.' + filename.split('.')[-1]
+    #filename =filename.rsplit('.',1)[0] + str(i)+'.' + filename.rsplit('.',1)[-1]
     while(os.path.isfile(os.path.join(dirname,filename))):
       i +=1
-      filename =filename.split('.')[0] + str(i)+'.'+ filename.split('.')[-1]
+      filename =filename.rsplit('.',1)[0] + str(i)+'.'+ filename.rsplit('.',1)[-1]
     return filename
   return os.path.basename(filepath)
 
