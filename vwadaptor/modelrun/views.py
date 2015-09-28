@@ -13,8 +13,9 @@ from sqlalchemy.inspection import inspect
 from vwadaptor.modelrun.models import ModelRun,ModelResource
 from vwadaptor.constants import PROGRESS_STATES
 from vwadaptor.constants import PROGRESS_STATES_MSG
-from vwadaptor.helpers import get_relationships_map, generate_file_name, modelresource_serializer
-from vwadaptor.validators import modelresource_form_schema
+from vwadaptor.helpers import get_relationships_map, generate_file_name
+from vwadaptor.helpers import modelrun_serializer, modelresource_serializer
+#from vwadaptor.validators import modelresource_form_schema
 
 from voluptuous import MultipleInvalid 
 
@@ -65,10 +66,8 @@ def upload_from_url(id):
       except ValueError:
         return jsonify({'message':'Please specify valid json'}), 400
       
-      try:
-        modelresource_form_schema(data)
-      except MultipleInvalid as e:
-        return jsonify({'message':e.error_message}), 400
+      if not ('url' in data and 'resource_type' in data and 'filename' in data):
+        return jsonify({'message':'Invalid Input Provided'}), 400
 
       try:
         filedata = requests.get(data['url'])
@@ -96,13 +95,17 @@ def start(id):
     modelrun = ModelRun.query.get(id)
     if modelrun:
       if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
-        modelrun.progress_state = PROGRESS_STATES['QUEUED']
-        modelrun = modelrun.update()
-        rels = get_relationships_map(ModelRun)
-        return jsonify(to_dict(modelrun,deep=rels)), 200
+        if modelrun.resources.count():
+          modelrun.progress_state = PROGRESS_STATES['QUEUED']
+          modelrun = modelrun.update()
+          rels = get_relationships_map(ModelRun)
+          return jsonify({'message':'ModelRun submitted in queue','modelrun':modelrun_serializer(modelrun)}), 200
+        else:
+          error = {'message':'ModelRun {0} has no resources attached'.format(modelrun)}
+          return jsonify(error), 400
       else:
         error = {'message':PROGRESS_STATES_MSG[modelrun.progress_state].format(modelrun_id=modelrun.id)}
-        return jsonify(error)
+        return jsonify(error), 400
     else:
       err = {"message":"ModelRun {0} Not Found".format(id)}
       return jsonify(err), 404
