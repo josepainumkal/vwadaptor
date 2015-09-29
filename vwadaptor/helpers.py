@@ -1,4 +1,5 @@
 import os
+import random, string
 from sqlalchemy.inspection import inspect
 from flask_restless.helpers import to_dict
 import json
@@ -12,6 +13,9 @@ def get_relationships(model):
   return [str(rel).split('.')[-1] for rel in rels]
 
 
+def randomword(length):
+   return ''.join(random.choice(string.lowercase) for i in range(length))
+
 def generate_file_name(filepath):
   '''
     generates a filename that does not exist in filepath
@@ -24,7 +28,7 @@ def generate_file_name(filepath):
     #filename =filename.rsplit('.',1)[0] + str(i)+'.' + filename.rsplit('.',1)[-1]
     while(os.path.isfile(os.path.join(dirname,filename))):
       i +=1
-      filename =filename.rsplit('.',1)[0] + str(i)+'.'+ filename.rsplit('.',1)[-1]
+      filename =filename.rsplit('.',1)[0] + randomword(5)+'.'+ filename.rsplit('.',1)[-1]
     return filename
   return os.path.basename(filepath)
 
