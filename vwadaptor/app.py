@@ -5,6 +5,8 @@ import os
 from flask import Flask, render_template
 #from flask.ext.restless import APIManager
 from flask_restless_swagger import SwagAPIManager as APIManager
+from flask.ext.cors import CORS
+
 from vwadaptor.settings import ProdConfig
 from vwadaptor.assets import assets
 from vwadaptor.extensions import (
@@ -35,8 +37,9 @@ def create_app(config_object=ProdConfig):
     register_blueprints(app)
     register_api(app,db)
     register_errorhandlers(app)
-
     create_directories(app)
+    #enable cors
+    CORS(app)
     return app
 
 

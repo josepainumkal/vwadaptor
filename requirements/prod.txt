@@ -42,3 +42,6 @@ marshmallow==2.0.0rc1
 
 #validation api
 voluptuous == 0.8.7
+
+#for cors
+flask-cors == 2.1.0
