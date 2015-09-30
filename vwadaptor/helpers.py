@@ -21,16 +21,14 @@ def generate_file_name(filepath):
     generates a filename that does not exist in filepath
   '''  
 
-  if os.path.isfile(filepath):
-    i=1
-    dirname = os.path.dirname(filepath)
-    filename = os.path.basename(filepath)
-    #filename =filename.rsplit('.',1)[0] + str(i)+'.' + filename.rsplit('.',1)[-1]
-    while(os.path.isfile(os.path.join(dirname,filename))):
-      i +=1
-      filename =filename.rsplit('.',1)[0] + randomword(5)+'.'+ filename.rsplit('.',1)[-1]
-    return filename
-  return os.path.basename(filepath)
+
+  dirname = os.path.dirname(filepath)
+  orig_file_name = os.path.basename(filepath)
+  filename = os.path.basename(filepath)
+  #filename =filename.rsplit('.',1)[0] + str(i)+'.' + filename.rsplit('.',1)[-1]
+  while(os.path.isfile(os.path.join(dirname,filename))):
+    filename =orig_file_name.rsplit('.',1)[0] + randomword(5)+'.'+ orig_file_name.rsplit('.',1)[-1]
+  return filename
 
 def get_relationships_map(model):
   relationships = get_relationships(model)
@@ -67,6 +65,10 @@ def modelresource_deserializer(data):
 #  return to_dict(instance,deep={'user':[],'resources':[]},exclude_relations={'resources':['resource_location']})
 def model_run_after_get_many(result=None, search_params=None, **kw):
   result['objects'] = [modelrun_deserializer(obj) for obj in result['objects']]
+
+def modelprogress_after_get_many(result=None, search_params=None, **kw):
+  #result [dictio for dictio in search_params['filters'] if dictio['name'] =='modelrun_id']
+  pass
 
 def model_run_before_delete(instance_id,**kw):
   modelrun = ModelRun.query.get(instance_id)
