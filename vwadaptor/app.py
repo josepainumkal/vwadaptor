@@ -23,7 +23,7 @@ from vwadaptor.modelrun.models import ModelRun, ModelResource, ModelProgress
 
 from vwadaptor.helpers import modelresource_serializer, modelrun_serializer,user_serializer
 from vwadaptor.helpers import model_resource_before_delete, model_run_before_delete
-from vwadaptor.helpers import model_run_after_get_many
+from vwadaptor.helpers import model_run_after_get_many,modelprogress_after_get_many
 
 def create_app(config_object=ProdConfig):
     """An application factory, as explained here:
@@ -62,7 +62,7 @@ def register_api(app,db):
         serializer=user_serializer,
         exclude_columns=['password']
     )
-    apimanager.create_api(ModelRun, 
+    apimanager.create_api(ModelRun,
         methods=['GET', 'POST','PUT', 'DELETE'],
         serializer=modelrun_serializer,
         preprocessors={
@@ -71,7 +71,8 @@ def register_api(app,db):
         postprocessors={
             'GET_MANY':[model_run_after_get_many]
         },
-        allow_delete_many=True
+        allow_delete_many=True,
+        results_per_page=-1
 
     )
     apimanager.create_api(ModelResource, 
@@ -85,7 +86,10 @@ def register_api(app,db):
     ),
     apimanager.create_api(ModelProgress, 
         methods=['GET', 'POST','PUT', 'DELETE'],
-        allow_delete_many=True
+        allow_delete_many=True,
+        postprocessors={
+            'GET_MANY':[modelprogress_after_get_many]
+        }
     )
 
 
