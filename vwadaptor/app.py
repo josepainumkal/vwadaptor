@@ -3,8 +3,8 @@
 import os
 
 from flask import Flask, render_template
-#from flask.ext.restless import APIManager
-from flask_restless_swagger import SwagAPIManager as APIManager
+from flask.ext.restless import APIManager
+#from flask_restless_swagger import SwagAPIManager as APIManager
 from flask.ext.cors import CORS
 
 from vwadaptor.settings import ProdConfig
