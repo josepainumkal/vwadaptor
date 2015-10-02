@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-
+import getpass
 os_env = os.environ
 
 
@@ -13,7 +13,7 @@ class Config(object):
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     DEBUG_TB_INTERCEPT_REDIRECTS = False
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
-    UPLOAD_FOLDER = '/home/escenic/vwuploads'
+    
 
 class ProdConfig(Config):
     """Production configuration."""
@@ -34,7 +34,7 @@ class DevConfig(Config):
     DEBUG_TB_ENABLED = True
     ASSETS_DEBUG = True  # Don't bundle/minify static assets
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
-
+    UPLOAD_FOLDER = '/home/'+getpass.getuser()+'/vwuploads'
 
 class TestConfig(Config):
     TESTING = True
