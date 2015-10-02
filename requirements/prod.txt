@@ -45,3 +45,6 @@ voluptuous == 0.8.7
 
 #for cors
 flask-cors == 2.1.0
+
+#pyee for modlerunner
+pyee==1.0.1
