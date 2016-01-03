@@ -1,11 +1,11 @@
 import sys
-#sys.path.append("/opt/anaconda/bin")
-sys.path.append("/var/www/vwadaptor")
-sys.path.append("/opt/vw-py")
+sys.path.append("/home/escenic/vwadaptor")
+sys.path.append("/home/escenic/wcwave_adaptors")
+
 
 import os
 import logging
-import multiprocessing
+import threading
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -17,12 +17,12 @@ from vwadaptor.user.models import User
 from vwadaptor.constants import PROGRESS_STATES
 
 import netCDF4 
-from vwpy.isnobal import isnobal 
+from wcwave_adaptors.isnobal import isnobal 
 
 from pyee import EventEmitter
 
 
-LOG_FILENAME = '/var/www/vwadaptor/model_runner.log'
+LOG_FILENAME = '/home/escenic/vwadaptor/model_runner.log'
 logging.basicConfig(filename=LOG_FILENAME,level=logging.DEBUG,
                     format='%(asctime)s %(message)s',
                     datefmt='%m/%d/%Y %I:%M:%S')
@@ -58,17 +58,14 @@ def on_progress(dbsession,modelrun_id,progress_state=PROGRESS_STATES['RUNNING'],
   progress_event.modelrun_id = modelrun_id
   add_progress_event(dbsession,progress_event)
   modelrun = session.query(ModelRun).filter_by(id=modelrun_id).first()
-  #modelrun.progress_state = progress_state
-  #modelrun.progress_value = kwargs['progress_value']
+  modelrun.progress_state = progress_state
+  modelrun.progress_value = kwargs['progress_value']
   dbsession.commit()
 
 
-def run_model(dbsession,modelrun):
+def run_model(dbsesion,modelrun):
   logging.debug('running modlerun:{modelrun}'.format(modelrun=modelrun))
-  
-  modelrun.progress_state = PROGRESS_STATES['RUNNING']
-  dbsession.commit()
-
+  print 
   modelresource = session.query(ModelResource).filter_by(modelrun_id=modelrun.id,resource_type='input').first()
   input_path = modelresource.resource_location
   input_nc = netCDF4.Dataset(input_path) 
@@ -86,10 +83,8 @@ def run_model(dbsession,modelrun):
     logging.info('done running::{modelrun}'.format(modelrun=modelrun))
   except:
     logging.info('Erorr Happended while running model:{modelrun}'.format(modelrun=modelrun))
-    e = sys.exc_info()[0]
-    print e 
     modelrun.progress_state=PROGRESS_STATES['ERROR']
-  dbsession.commit()
+  dbsesion.commit()
 
 
 db_engine = create_engine(config.SQLALCHEMY_DATABASE_URI)
@@ -107,13 +102,11 @@ session = Session()
 
 
 
-modelruns = session.query(ModelRun).filter_by(progress_state=PROGRESS_STATES['QUEUED'],model_name='isnobal').all()
+modelrun = session.query(ModelRun).filter_by(progress_state=PROGRESS_STATES['QUEUED'],model_name='isnobal').first()
 #print modelruns
-if modelruns:
-  logging.info('starting job on queued modelruns')
-  for modelrun in modelruns:
-    p = multiprocessing.Process(name='runmodel {0}'.format(modelrun.id), target=run_model,args=(session,modelrun,))
-    p.start()
+if modelrun:
+  logging.info('starting job on queued modelrun: {modelrun}.'.format(modelrun=modelrun))
+  run_model(session,modelrun)
 else:
   logging.info('No queued model run found on this turn.')
 
