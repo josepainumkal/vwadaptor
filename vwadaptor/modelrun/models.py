@@ -19,7 +19,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 class ModelRun(SurrogatePK, Model):
 
     __tablename__ = 'modelruns'
-    
+
     title = Column(db.String(80), unique=True, nullable=False)
     model_name = Column(db.String(30), nullable=False)
     resources = relationship('ModelResource', backref='modelrun', lazy='dynamic')
@@ -56,7 +56,7 @@ class ModelResource(SurrogatePK, Model):
         db.Model.__init__(self, **kwargs)
 
     def __repr__(self):
-        return '<ModelResource({type}--{name})>'.format(type=self.file_type,name=self.file_location)
+        return '<ModelResource({type}--{name})>'.format(type=self.resource_type,name=self.resource_location)
 
 
 
