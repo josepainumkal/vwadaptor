@@ -21,7 +21,7 @@ from vwadaptor.constants import PROGRESS_STATES
 from pyee import EventEmitter
 
 import vwpy
-
+from vwpy.modelschema import  load_schemas
 
 def load_model_modules(modelschemas):
     model_modules={}
@@ -30,18 +30,6 @@ def load_model_modules(modelschemas):
         met = modelschemas[mschema]['execution']['target']['method']
         model_modules[modelschemas[mschema]['model']]={'module':mod,'method':getattr(mod, met)}
     return model_modules
-# load the schemas
-def load_schemas():
-    vwpydir = os.path.dirname(vwpy.__file__)
-    schemadir = os.path.join(vwpydir,'modelschema')
-    modelschemas={}
-    for f in os.listdir(schemadir):
-        with open(os.path.join(schemadir,f)) as schema_file:
-             data = json.load(schema_file)
-             modelschemas[data['model']]=data
-    return modelschemas
-
-
 
 def create_resource_mapping(schema,modelrun):
     resources = session.query(ModelResource).filter_by(modelrun_id=modelrun.id).all()
