@@ -47,3 +47,4 @@ env/
 
 #Others
 sftp-config.json
+deployment-config.json
