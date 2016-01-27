@@ -17,7 +17,7 @@ from vwadaptor.extensions import (
     migrate,
     debug_toolbar,
 )
-from vwadaptor import public, user, modelrun, modelresource
+from vwadaptor import api,public, user, modelrun, modelresource
 from vwadaptor.user.models import User
 from vwadaptor.modelrun.models import ModelRun, ModelResource, ModelProgress
 
@@ -57,7 +57,7 @@ def register_api(app,db):
     db.app = app
     apimanager = APIManager(app, flask_sqlalchemy_db=db)
     #apimanager.create_api(Person, methods=['GET', 'POST', 'DELETE'])
-    apimanager.create_api(User, 
+    apimanager.create_api(User,
         methods=['GET', 'POST','PUT', 'DELETE'],
         serializer=user_serializer,
         exclude_columns=['password']
@@ -75,7 +75,7 @@ def register_api(app,db):
         results_per_page=-1
 
     )
-    apimanager.create_api(ModelResource, 
+    apimanager.create_api(ModelResource,
         methods=['GET', 'POST','PUT', 'DELETE'],
         serializer=modelresource_serializer,
         preprocessors={
@@ -84,7 +84,7 @@ def register_api(app,db):
         exclude_columns=['resource_location'],
         allow_delete_many=True
     ),
-    apimanager.create_api(ModelProgress, 
+    apimanager.create_api(ModelProgress,
         methods=['GET', 'POST','PUT', 'DELETE'],
         allow_delete_many=True,
         postprocessors={
@@ -98,6 +98,7 @@ def register_blueprints(app):
     app.register_blueprint(user.views.blueprint)
     app.register_blueprint(modelrun.views.blueprint)
     app.register_blueprint(modelresource.views.blueprint)
+    app.register_blueprint(api.views.blueprint)
     return None
 
 def create_directories(app):
