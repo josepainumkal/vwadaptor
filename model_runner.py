@@ -1,4 +1,6 @@
 import sys
+import traceback
+
 #sys.path.append("/opt/anaconda/bin")
 sys.path.append("/var/www/vwadaptor")
 sys.path.append("/opt/vw-py")
@@ -107,8 +109,8 @@ def run_model(dbsession,modelrun):
         logging.info('done running::{modelrun}'.format(modelrun=modelrun))
     except:
         logging.info('Erorr Happended while running model:{modelrun}'.format(modelrun=modelrun))
-        e = sys.exc_info()[0]
-        print e
+        logging.info(traceback.format_exc())
+
         modelrun.progress_state=PROGRESS_STATES['ERROR']
     dbsession.commit()
 
