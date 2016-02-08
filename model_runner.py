@@ -100,11 +100,12 @@ def run_model(dbsession,modelrun):
         model_modules[modelrun.model_name]['method'](event_emitter=ee,**kwargs)
         output_mapping = resolve_output_map(mapping,modelschemas[modelrun.model_name])
         for m in output_mapping:
-            output_resource = ModelResource()
-            output_resource.resource_type=output_mapping[m]['type']
-            output_resource.resource_location = output_mapping[m]['location']
-            output_resource.resource_size = os.stat(output_resource.resource_location).st_size
-            modelrun.resources.append(output_resource)
+            if os.path.exists(output_mapping[m]['location']):
+                output_resource = ModelResource()
+                output_resource.resource_type=output_mapping[m]['type']
+                output_resource.resource_location = output_mapping[m]['location']
+                output_resource.resource_size = os.stat(output_resource.resource_location).st_size
+                modelrun.resources.append(output_resource)
         modelrun.progress_state=PROGRESS_STATES['FINISHED']
         logging.info('done running::{modelrun}'.format(modelrun=modelrun))
     except:
