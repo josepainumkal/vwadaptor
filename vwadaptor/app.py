@@ -8,7 +8,6 @@ from flask.ext.restless import APIManager
 from flask.ext.cors import CORS
 
 from vwadaptor.settings import ProdConfig
-from vwadaptor.assets import assets
 from vwadaptor.extensions import (
     bcrypt,
     cache,
@@ -17,7 +16,7 @@ from vwadaptor.extensions import (
     migrate,
     debug_toolbar,
 )
-from vwadaptor import api,public, user, modelrun, modelresource
+from vwadaptor import api, modelrun, modelresource
 from vwadaptor.user.models import User
 from vwadaptor.modelrun.models import ModelRun, ModelResource, ModelProgress
 
@@ -44,7 +43,6 @@ def create_app(config_object=ProdConfig):
 
 
 def register_extensions(app):
-    assets.init_app(app)
     bcrypt.init_app(app)
     cache.init_app(app)
     db.init_app(app)
@@ -94,8 +92,6 @@ def register_api(app,db):
 
 
 def register_blueprints(app):
-    app.register_blueprint(public.views.blueprint)
-    app.register_blueprint(user.views.blueprint)
     app.register_blueprint(modelrun.views.blueprint)
     app.register_blueprint(modelresource.views.blueprint)
     app.register_blueprint(api.views.blueprint)
