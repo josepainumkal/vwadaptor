@@ -16,7 +16,7 @@ from vwadaptor.extensions import (
     migrate,
     debug_toolbar,
 )
-from vwadaptor import api, modelrun, modelresource
+from vwadaptor import api, user, modelrun, modelresource
 from vwadaptor.user.models import User
 from vwadaptor.modelrun.models import ModelRun, ModelResource, ModelProgress
 
@@ -94,6 +94,7 @@ def register_api(app,db):
 def register_blueprints(app):
     app.register_blueprint(modelrun.views.blueprint)
     app.register_blueprint(modelresource.views.blueprint)
+    app.register_blueprint(user.views.blueprint)
     app.register_blueprint(api.views.blueprint)
     return None
 
