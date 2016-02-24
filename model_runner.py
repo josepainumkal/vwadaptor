@@ -116,7 +116,7 @@ def run_model(dbsession,modelrun):
     dbsession.commit()
 
 
-LOG_FILE = '/var/www/vwadaptor/model_runner.log'
+LOG_FILE = 'model_runner.log'
 logging.basicConfig(filename=LOG_FILE,level=logging.DEBUG,format='%(asctime)s %(message)s',datefmt='%m/%d/%Y %I:%M:%S')
 
 
