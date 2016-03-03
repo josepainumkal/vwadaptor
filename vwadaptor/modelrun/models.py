@@ -25,7 +25,8 @@ class ModelRun(SurrogatePK, Model):
     resources = relationship('ModelResource', backref='modelrun', lazy='dynamic')
     user_id = Column(db.Integer, db.ForeignKey('users.id'),nullable=False)
     #'not_started','queued', 'running','finished','error'
-    progress_state = Column( db.Enum(*tuple(PROGRESS_STATES.values())), default=PROGRESS_STATES['NOT_STARTED'])
+    progress_state = Column(db.String(30), nullable=True,default='NOT_STARTED')
+    #progress_state = Column( db.Enum(*tuple(PROGRESS_STATES.values())), default=PROGRESS_STATES['NOT_STARTED'],name='progress_states')
     progress_value = Column(db.Float(10), nullable=True,default=0.0)
     progress_events = relationship('ModelProgress', backref='modelrun', lazy='dynamic')
     created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)

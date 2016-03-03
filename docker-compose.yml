@@ -1,0 +1,61 @@
+version: '2'
+services:
+  web:
+    #image: itsrifat/vwadaptor:0.3
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/vwadaptor
+    ports:
+     - "5000:5000"
+    volumes:
+     - /data:/vwuploads
+    depends_on:
+      - postgres
+      - redis
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/vwadaptor
+    environment:
+      VWADAPTOR_CELERY_WORKER_NAME: vwadaptor-worker
+    volumes:
+      - /data:/vwuploads
+    entrypoint: python
+    command: [manage.py,celeryworker]
+    depends_on:
+      - postgres
+      - redis
+  worker2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/vwadaptor
+    environment:
+      VWADAPTOR_CELERY_WORKER_NAME: vwadaptor-worker-2
+    volumes:
+      - /data:/vwuploads
+    entrypoint: python
+    command: [manage.py,celeryworker]
+    depends_on:
+      - postgres
+      - redis
+
+  monitor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /var/www/vwadaptor
+    ports:
+     - "5555:5555"
+    entrypoint: flower
+    command: -A vwadaptor.extensions.celery --port=5555 --broker=redis://redis:6379/0
+
+    depends_on:
+      - postgres
+      - redis
+  redis:
+    image: redis
+  postgres:
+    image: postgres

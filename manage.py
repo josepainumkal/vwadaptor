@@ -5,6 +5,8 @@ from flask_script import Manager, Shell, Server
 from flask_script.commands import Clean, ShowUrls
 from flask_migrate import MigrateCommand
 
+from celery.bin.celery import main as celery_main
+
 from vwadaptor.app import create_app
 from vwadaptor.user.models import User
 from vwadaptor.modelrun.models import ModelRun
@@ -12,10 +14,10 @@ from vwadaptor.settings import DevConfig, ProdConfig
 from vwadaptor.database import db
 
 if os.environ.get("VWADAPTOR_ENV") == 'prod':
-    app = create_app(ProdConfig)
+    config = ProdConfig
 else:
-    app = create_app(DevConfig)
-
+    config = DevConfig
+app = create_app(config)
 HERE = os.path.abspath(os.path.dirname(__file__))
 TEST_PATH = os.path.join(HERE, 'tests')
 
@@ -36,6 +38,14 @@ def test():
     exit_code = pytest.main([TEST_PATH, '--verbose'])
     return exit_code
 
+@manager.command
+def celeryworker():
+
+    celery_args = ['celery', 'worker', '-n', config.CELERY_WORKER_NAME, '-C',
+                    '--autoscale={max},{min}'.format(max=config.CELERY_SCALE_MAX,min=config.CELERY_SCALE_MIN),
+                    '--without-gossip']
+    with app.app_context():
+        return celery_main(celery_args)
 
 manager.add_command('server', Server())
 manager.add_command('shell', Shell(make_context=_make_context))

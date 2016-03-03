@@ -15,6 +15,7 @@ from vwadaptor.extensions import (
     login_manager,
     migrate,
     debug_toolbar,
+    celery
 )
 from vwadaptor import api, user, modelrun, modelresource
 from vwadaptor.user.models import User
@@ -49,10 +50,14 @@ def register_extensions(app):
     login_manager.init_app(app)
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)
+    celery.init_app(app)
     return None
 
 def register_api(app,db):
     db.app = app
+    #import time
+    #time.sleep(10)
+    db.create_all()
     apimanager = APIManager(app, flask_sqlalchemy_db=db)
     #apimanager.create_api(Person, methods=['GET', 'POST', 'DELETE'])
     apimanager.create_api(User,

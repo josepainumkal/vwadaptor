@@ -20,3 +20,6 @@ cache = Cache()
 
 from flask_debugtoolbar import DebugToolbarExtension
 debug_toolbar = DebugToolbarExtension()
+
+from flask.ext.celery import Celery
+celery = Celery()

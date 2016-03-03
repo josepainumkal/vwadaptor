@@ -17,11 +17,12 @@ from vwadaptor.helpers import get_relationships_map, generate_file_name
 from vwadaptor.helpers import modelrun_serializer, modelresource_serializer
 #from vwadaptor.validators import modelresource_form_schema
 
-from voluptuous import MultipleInvalid 
+from voluptuous import MultipleInvalid
 
 import json
 import requests
 
+from vwadaptor.tasks import  run_model_from_id
 
 blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
                       static_folder="../static")
@@ -65,7 +66,7 @@ def upload_from_url(id):
         data = json.loads(request.get_data())
       except ValueError:
         return jsonify({'message':'Please specify valid json'}), 400
-      
+
       if not ('url' in data and 'resource_type' in data and 'filename' in data):
         return jsonify({'message':'Invalid Input Provided'}), 400
 
@@ -84,11 +85,11 @@ def upload_from_url(id):
         return jsonify({'message':'Couldn\'t get file from url.'}), 400
 
     else:
-        return jsonify({'message':'Uploading resources to new modelrun is permitted only'}), 400  
+        return jsonify({'message':'Uploading resources to new modelrun is permitted only'}), 400
   err = {"message":"Invalid modlerun id supplied"}
   return jsonify(err), 400
 
-      
+
 @blueprint.route("/<int:id>/start",methods=['PUT'])
 #@login_required
 def start(id):
@@ -99,7 +100,8 @@ def start(id):
           modelrun.progress_state = PROGRESS_STATES['QUEUED']
           modelrun = modelrun.update()
           rels = get_relationships_map(ModelRun)
-          return jsonify({'message':'ModelRun submitted in queue','modelrun':modelrun_serializer(modelrun)}), 200
+          task = run_model_from_id.delay(id)
+          return jsonify({'message':'ModelRun submitted in queue','modelrun':modelrun_serializer(modelrun),'task_id':task.id}), 200
         else:
           error = {'message':'ModelRun {0} has no resources attached'.format(modelrun)}
           return jsonify(error), 400
@@ -109,7 +111,7 @@ def start(id):
     else:
       err = {"message":"ModelRun {0} Not Found".format(id)}
       return jsonify(err), 404
-      
+
 
 @blueprint.route("/<int:id>/progress")
 #@login_required
@@ -121,4 +123,3 @@ def progress(id):
     else:
       err = {"error":"ModelRun {0} Not Found".format(id)}
       return jsonify(err), 404
-
