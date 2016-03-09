@@ -1,0 +1,341 @@
+basePath: /api
+consumes:
+  - application/json
+produces:
+  - application/json
+schemes:
+  - http
+swagger: '2.0'
+
+info:
+  title: ''
+  description: ''
+  version: '1.0'
+  contact:
+    name: ''
+    url: ''
+host: 'vwadaptor.ddns.net:5000'
+
+definitions:
+  QueryResult:
+    properties:
+      num_results:
+        type: integer
+        format: int64
+      page:
+        type: integer
+        format: int64
+      total_pages:
+        type: integer
+        format: int64
+      objects:
+        type: array
+        items:
+          type: object
+  QueryParam:
+    properties:
+      name:
+        type: string
+      op:
+        type: string
+      val:
+        type: string
+  QueryOrder:
+    properties:
+      field:
+        type: string
+      direction:
+        type: string
+        enum:
+          - asc
+          - desc
+          
+  Query:
+    properties:
+      filters:
+        type: array
+        items:
+          $ref: '#/definitions/QueryParam'
+      order_by:
+        type: array
+        items: 
+          $ref: '#/definitions/QueryOrder'
+  ModelProgress:
+    properties:
+      id: 
+        type: integer
+        format: int64
+      created_at:
+        type: string
+        format: date-time
+      event_description:
+        type: string
+      event_name:
+        type: string
+      modelrun_id:
+        type: integer
+        format: int64
+      progress_value:
+        type: number
+        format: float
+
+  ModelResource:
+    properties:
+      id: 
+        type: integer
+        format: int64
+      created_at:
+        type: string
+        format: date-time
+      modelrun_id:
+        type: integer
+      resource_size:
+        type: integer
+        format: int64
+      resource_type:
+        type: string
+        
+    type: object
+  
+  ModelRun:
+    type: object
+    properties:
+      id:
+        type: integer
+      created_at:
+        type: string
+        format: date-time
+      model_name: 
+        type: string
+      progress_state:
+        type: string
+        enum:
+          - NOT_STARTED
+          - QUEUED
+          - RUNNING
+          - ERROR
+          - FINISHED
+      progress_value:
+        type: number
+        format: float
+      title:
+        type: string
+      user_id:
+        type: integer
+        
+      progress_events:
+        readOnly: true
+        type: array
+        items:
+          $ref: '#/definitions/ModelProgress'
+      resources:
+        readOnly: true
+        type: array
+        items:
+          $ref: '#/definitions/ModelResource'
+    
+  User:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+        format: date-time
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      username:
+        type: string
+    type: object
+
+paths:
+  /modelprogress:
+    get:
+      operationId: searchModelProgress
+      parameters:
+        - 
+          description: | 
+            The search query in the following JSON format:
+             ```javascript
+               {
+                "filters": [{
+                  "name": "attribute_name",
+                  "op": "operator_name",
+                  "val": "value_to_compare"
+                }],
+                "order_by": [{
+                  "field": "field_name_to_order_by",
+                  "direction": "direction_of_order"
+                }]
+              }
+            ```
+            An Example query might look like this:
+            ```javascript
+               {
+                "filters": [{
+                  "name": "modelrun_id",
+                  "op": "eq",
+                  "val": 1
+                }],
+                "order_by": [{
+                  "field": "created_at",
+                  "direction": "desc"
+                }]
+              }
+            ```
+            
+            
+  
+          in: query
+          name: q
+          type: string
+            
+      responses:
+        '200':
+          description: List of modelprogress
+          schema:
+            $ref: '#/definitions/QueryResult'
+  '/modelprogress/{modelprogressId}':
+    
+    get:
+      description: | 
+        This method is used to get a specific progress event while a model is running.
+      operationId: getModelProgress
+      parameters:
+        - description: Id of ModelProgress
+          in: path
+          name: modelprogressId
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ModelProgress'
+        '404':
+          description: Not Found
+  
+  /modelruns:
+    get:
+      description: |
+        This method is used to search for model runs specifying a query paramter.
+      operationId: searchModelruns
+      parameters:
+        - 
+          description: search
+          in: query
+          name: q
+          type: string
+      responses:
+        '200':
+          description: Search Modelruns
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/QueryResult'
+              
+    post:
+      description: |
+        This method is used to create a new model run.
+      operationId: createModelrun
+      parameters:
+        - description: a Moldelrun object
+          in: body
+          name: modelrun
+          schema: 
+            $ref: '#/definitions/ModelRun'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ModelRun'
+  /modelruns/{modelrunId}:
+    get:
+      description: |
+        This method is used to get a specific Modelrun by specifying the Id of the model run.
+      operationId: getModelrunById
+      parameters:
+        - description: Id of ModelRun
+          in: path
+          name: modelrunId
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/ModelRun'
+        '404':
+          description: Not Found
+    delete:
+      description: |
+        This method is used to delete a model run and all its resources.
+      operationId: deleteModelrun
+      parameters:
+        - description: ID of ModelRun
+          in: path
+          name: modelrunId
+          required: true
+          type: integer
+      responses:
+        '204':
+          description: Successful deletion
+          schema:
+            $ref: '#/definitions/ModelRun'
+        '404':
+          description: Not Found
+  /modelruns/{modelrunId}/start:
+    
+    put:
+      description: |
+        This method enques a model run in the server after all necessary resources has been uploaded.
+      operationId: startModelrun
+      parameters:
+        - description: Id of Modelrun
+          in: path
+          name: modelrunId
+          required: true
+          type: integer
+      responses:
+        '200':
+          description: succesfully queued a model run
+          
+        '400':
+          description: Its not a new model run or doesn't have any resource
+        '404':
+          description: Not Found
+  /modelruns/{modelrunId}/upload:
+  
+    post:
+      description: |
+        This method is used to upload resources to a model run after its created.
+      operationId: uploadResourceToModelrun
+      consumes:
+        - multipart/form-data
+      description: To upload a resource to a model run
+      parameters:
+        - description: ID of ModelRun
+          in: path
+          name: modelrunId
+          required: true
+          type: integer
+        
+        - description: resource type
+          in: formData
+          name: resource_type
+          required: true
+          type: string
+        - description: resource file
+          in: formData
+          name: file
+          required: true
+          type: file
+      responses:
+        '200':
+          description: succesfully uploaded resource
+  
