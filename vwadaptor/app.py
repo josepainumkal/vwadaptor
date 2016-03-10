@@ -15,6 +15,7 @@ from vwadaptor.extensions import (
     login_manager,
     migrate,
     debug_toolbar,
+    storage
 )
 from vwadaptor import api, user, modelrun, modelresource
 from vwadaptor.user.models import User
@@ -49,6 +50,7 @@ def register_extensions(app):
     login_manager.init_app(app)
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)
+    storage.init_app(app)
     return None
 
 def register_api(app,db):
@@ -79,7 +81,7 @@ def register_api(app,db):
         preprocessors={
             'DELETE_SINGLE':[model_resource_before_delete]
         },
-        exclude_columns=['resource_location'],
+        exclude_columns=[],
         allow_delete_many=True
     ),
     apimanager.create_api(ModelProgress,
@@ -99,8 +101,7 @@ def register_blueprints(app):
     return None
 
 def create_directories(app):
-    if not os.path.exists(app.config['UPLOAD_FOLDER']):
-        os.makedirs(app.config['UPLOAD_FOLDER'])
+    pass
 
 
 def register_errorhandlers(app):

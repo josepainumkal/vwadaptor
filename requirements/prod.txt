@@ -48,3 +48,7 @@ flask-cors == 2.1.0
 
 #pyee for modlerunner
 pyee==1.0.1
+
+# for storage
+#Flask-Cloudy==0.13.1
+git+https://github.com/itsrifat/flask-cloudy.git@v-0.13.1.1#egg=Flask-Cloudy

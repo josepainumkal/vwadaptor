@@ -45,25 +45,17 @@ class ModelRun(SurrogatePK, Model):
 class ModelResource(SurrogatePK, Model):
     __tablename__ = 'modelresources'
     resource_type = Column(db.String(80), nullable=False)
-    #resource_url = Column(db.String(200), nullable=True)
-    resource_location = Column(db.String(80), nullable=True, unique=True)
+    resource_url = Column(db.String(200), nullable=False)
+    resource_name = Column(db.String(200), nullable=False)
     resource_size = Column(db.Integer)
     modelrun_id = Column(db.Integer, db.ForeignKey('modelruns.id'))
     created_at = Column(db.DateTime, nullable=True, default=dt.datetime.utcnow)
-    @hybrid_property
-    def resource_name(self):
-        return os.path.basename(self.resource_location)
-
-    @hybrid_property
-    def resource_url(self):
-        return url_for('modelresource.download_resource_by_name',
-            name=os.path.basename(self.resource_location),_external=True)
 
     def __init__(self, **kwargs):
         db.Model.__init__(self, **kwargs)
 
     def __repr__(self):
-        return '<ModelResource({type}--{name})>'.format(type=self.resource_type,name=self.resource_location)
+        return '<ModelResource({type}--{name})>'.format(type=self.resource_type,name=self.resource_name)
 
 
 

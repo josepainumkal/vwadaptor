@@ -19,13 +19,10 @@ class ModelResourceSchema(Schema):
     resource_type = fields.String()
     resource_size = fields.Integer()
     modelrun_id = fields.Integer()
-    resource_name = fields.Function(lambda obj: os.path.basename(obj.resource_location))
-    #resource_x = fields.Function(lambda obj: os.path.basename(obj.resource_location))
+    resource_name = fields.String()
     resource_url = fields.String()
     created_at = fields.DateTime()
-    #def make_object(self, data):
-    #    return ModelResource(**data)
-
+    
 class ModelRunSchema(Schema):
     id = fields.Integer()
     title = fields.String()

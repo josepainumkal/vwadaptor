@@ -15,13 +15,15 @@ from vwadaptor.constants import PROGRESS_STATES
 from vwadaptor.constants import PROGRESS_STATES_MSG
 from vwadaptor.helpers import get_relationships_map, generate_file_name
 from vwadaptor.helpers import modelrun_serializer, modelresource_serializer
-#from vwadaptor.validators import modelresource_form_schema
+from vwadaptor.extensions import storage
 
-from voluptuous import MultipleInvalid 
+from voluptuous import MultipleInvalid
 
 import json
 import requests
+from werkzeug.datastructures import FileStorage
 
+import traceback
 
 blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
                       static_folder="../static")
@@ -33,17 +35,19 @@ blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
 def upload(id):
   modelrun = ModelRun.query.get(id)
   if modelrun:
-    if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
+    #if modelrun.progress_state in [PROGRESS_STATES['NOT_STARTED'],PROGRESS_STATES['RUNNING']]:
       file = request.files['file']
       if file:
           filename = secure_filename(file.filename)
-          resource_loc = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-          resource_loc =  os.path.join(app.config['UPLOAD_FOLDER'], generate_file_name(resource_loc))
-          file.save(resource_loc)
-
+          resource_file = storage.upload(file)
           resource_type=request.form['resource_type']
-          resource_size = os.stat(resource_loc).st_size
-          m = {'modelrun_id':id,'resource_type':resource_type,'resource_location':resource_loc,'resource_size':resource_size}
+          m = {
+                'modelrun_id':id,
+                'resource_type':resource_type,
+                'resource_name':resource_file.name,
+                'resource_url':resource_file.get_url(longurl=True),
+                'resource_size':resource_file.size
+            }
           resource = ModelResource.create(**m)
 
           msg = {"message":"Resource create for model run "+str(id),'resource':modelresource_serializer(resource)}
@@ -52,43 +56,49 @@ def upload(id):
   err = {"message":"Erorr Occured"}
   return jsonify(err), 500
 
-@blueprint.route("/<int:id>/upload/fromurl",methods=['POST'])
-#@login_required
+@blueprint.route("/<int:id>/upload/fromurl", methods=['POST'])
 def upload_from_url(id):
-  '''
-    expects json. expects url,filename,resource_type
-  '''
-  modelrun = ModelRun.query.get(id)
-  if modelrun:
-    if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
-      try:
-        data = json.loads(request.get_data())
-      except ValueError:
-        return jsonify({'message':'Please specify valid json'}), 400
-      
-      if not ('url' in data and 'resource_type' in data and 'filename' in data):
-        return jsonify({'message':'Invalid Input Provided'}), 400
+    '''
+      expects json. expects url,filename,resource_type
+    '''
+    modelrun = ModelRun.query.get(id)
+    if modelrun:
+        if modelrun.progress_state == PROGRESS_STATES['NOT_STARTED']:
+            try:
+                data = json.loads(request.get_data())
+            except ValueError:
+                return jsonify({'message': 'Please specify valid json'}), 400
 
-      try:
-        filedata = requests.get(data['url'])
-        resource_loc = os.path.join(app.config['UPLOAD_FOLDER'], data['filename'])
-        resource_loc =  os.path.join(app.config['UPLOAD_FOLDER'], generate_file_name(resource_loc))
-        with app.open_instance_resource(resource_loc, 'wb') as f:
-            f.write(filedata.content)
-        resource_size = os.stat(resource_loc).st_size
-        m = {'modelrun_id':id,'resource_type':data['resource_type'],'resource_location':resource_loc,'resource_size':resource_size}
-        resource = ModelResource.create(**m)
-        return jsonify({'message':"Resource create for model run "+str(id),'resource':modelresource_serializer(resource)}), 201
-      except Exception, e:
-        print e
-        return jsonify({'message':'Couldn\'t get file from url.'}), 400
+            if not ('url' in data and 'resource_type' in data and 'filename' in data):
+                return jsonify({'message': 'Invalid Input Provided'}), 400
 
-    else:
-        return jsonify({'message':'Uploading resources to new modelrun is permitted only'}), 400  
-  err = {"message":"Invalid modlerun id supplied"}
-  return jsonify(err), 400
+            try:
+                filedata = requests.get(data['url'])
+                tmp_loc = os.path.join('/tmp/', data['filename'])
+                with app.open_instance_resource(tmp_loc, 'wb') as f:
+                    f.write(filedata.content)
 
-      
+                resource_file = storage.upload(tmp_loc)
+                resource_type = data['resource_type']
+                m = {
+                    'modelrun_id': id,
+                    'resource_type': resource_type,
+                    'resource_name': resource_file.name,
+                    'resource_url': resource_file.get_url(longurl=True),
+                    'resource_size': resource_file.size
+                }
+                resource = ModelResource.create(**m)
+                return jsonify({'message': "Resource create for model run " + str(id), 'resource': modelresource_serializer(resource)}), 201
+            except Exception, e:
+                return jsonify({'message': 'Couldn\'t get file from url.'}), 400
+
+        else:
+            return jsonify({'message': 'Uploading resources to new modelrun is permitted only'}), 400
+    err = {"message": "Invalid modlerun id supplied"}
+    return jsonify(err), 400
+
+
+
 @blueprint.route("/<int:id>/start",methods=['PUT'])
 #@login_required
 def start(id):
@@ -109,7 +119,7 @@ def start(id):
     else:
       err = {"message":"ModelRun {0} Not Found".format(id)}
       return jsonify(err), 404
-      
+
 
 @blueprint.route("/<int:id>/progress")
 #@login_required
@@ -121,4 +131,3 @@ def progress(id):
     else:
       err = {"error":"ModelRun {0} Not Found".format(id)}
       return jsonify(err), 404
-
