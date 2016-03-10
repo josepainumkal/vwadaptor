@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 import getpass
+import json
 from flask_cloudy import ALL_EXTENSIONS
 os_env = os.environ
 
@@ -15,18 +16,21 @@ class Config(object):
     DEBUG_TB_INTERCEPT_REDIRECTS = False
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
 
-    STORAGE_PROVIDER= 'LOCAL' # Can also be S3, GOOGLE_STORAGE, etc...
-    STORAGE_KEY = ''
-    STORAGE_SECRET =  ''
-    STORAGE_CONTAINER =  os.path.join(APP_DIR,'uploads')  # a directory path for local, bucket name of cloud
-    STORAGE_SERVER = True
-    STORAGE_SERVER_URL = '/files' # The url endpoint to access files on LOCAL provider
-    STORAGE_ALLOWED_EXTENSIONS = ALL_EXTENSIONS + ['nc','control']
+    SQLALCHEMY_DATABASE_URI =  os_env.get('VWADAPTOR_SQLALCHEMY_DATABASE_URI','postgresql://localhost/example')  # TODO: Change me
+
+    STORAGE_PROVIDER = os_env.get('VWADAPTOR_STORAGE_PROVIDER','LOCAL') # Can also be S3, GOOGLE_STORAGE, etc...
+    STORAGE_KEY = os_env.get('VWADAPTOR_STORAGE_KEY','')
+    STORAGE_SECRET =  os_env.get('VWADAPTOR_STORAGE_SECRET','')
+    STORAGE_CONTAINER = os_env.get('VWADAPTOR_STORAGE_CONTAINER', os.path.join(APP_DIR,'uploads'))  # a directory path for local, bucket name of cloud
+    STORAGE_SERVER = os_env.get('VWADAPTOR_STORAGE_SERVER',True) # VWADAPTOR_STORAGE_SERVER should be a lowercase string of value true/false
+    STORAGE_SERVER_URL = os_env.get('VWADAPTOR_STORAGE_SERVER_URL', '/files') # The url endpoint to access files on LOCAL provider
+    STORAGE_EXTENSIONS  = os_env.get('VWADAPTOR_STORAGE_SERVER_URL', '').split(',') # should be a comma seperated list
+    STORAGE_ALLOWED_EXTENSIONS = ALL_EXTENSIONS + STORAGE_EXTENSIONS
 class ProdConfig(Config):
     """Production configuration."""
     ENV = 'prod'
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/example'  # TODO: Change me
+    #SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/example'  # TODO: Change me
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
 
 
