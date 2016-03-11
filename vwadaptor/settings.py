@@ -24,7 +24,7 @@ class Config(object):
     STORAGE_CONTAINER = os_env.get('VWADAPTOR_STORAGE_CONTAINER', os.path.join(APP_DIR,'uploads'))  # a directory path for local, bucket name of cloud
     STORAGE_SERVER = os_env.get('VWADAPTOR_STORAGE_SERVER',True) # VWADAPTOR_STORAGE_SERVER should be a lowercase string of value true/false
     STORAGE_SERVER_URL = os_env.get('VWADAPTOR_STORAGE_SERVER_URL', '/files') # The url endpoint to access files on LOCAL provider
-    STORAGE_EXTENSIONS  = os_env.get('VWADAPTOR_STORAGE_SERVER_URL', '').split(',') # should be a comma seperated list
+    STORAGE_EXTENSIONS  = os_env.get('VWADAPTOR_STORAGE_EXTENSIONS', '').split(',') # should be a comma seperated list
     STORAGE_ALLOWED_EXTENSIONS = ALL_EXTENSIONS + STORAGE_EXTENSIONS
 class ProdConfig(Config):
     """Production configuration."""
