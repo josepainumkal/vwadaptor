@@ -21,6 +21,9 @@ TEST_PATH = os.path.join(HERE, 'tests')
 
 manager = Manager(app)
 
+@app.before_first_request
+def create_db():
+    db.create_all()
 
 def _make_context():
     """Return context dict for a shell session so you can access

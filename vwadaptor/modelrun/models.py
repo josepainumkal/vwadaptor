@@ -45,7 +45,7 @@ class ModelRun(SurrogatePK, Model):
 class ModelResource(SurrogatePK, Model):
     __tablename__ = 'modelresources'
     resource_type = Column(db.String(80), nullable=False)
-    resource_url = Column(db.String(200), nullable=False)
+    #resource_url = Column(db.String(200), nullable=True)
     resource_name = Column(db.String(200), nullable=False)
     resource_size = Column(db.Integer)
     modelrun_id = Column(db.Integer, db.ForeignKey('modelruns.id'))

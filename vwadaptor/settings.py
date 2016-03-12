@@ -2,12 +2,14 @@
 import os
 import getpass
 import json
+from decouple import config, Csv
+
 from flask_cloudy import ALL_EXTENSIONS
-os_env = os.environ
+
 
 
 class Config(object):
-    SECRET_KEY = os_env.get('VWADAPTOR_SECRET', 'secret-key')  # TODO: Change me
+    SECRET_KEY = config('VWADAPTOR_SECRET', 'secret-key')  # TODO: Change me
     APP_DIR = os.path.abspath(os.path.dirname(__file__))  # This directory
     PROJECT_ROOT = os.path.abspath(os.path.join(APP_DIR, os.pardir))
     BCRYPT_LOG_ROUNDS = 13
@@ -15,22 +17,36 @@ class Config(object):
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     DEBUG_TB_INTERCEPT_REDIRECTS = False
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
-
-    SQLALCHEMY_DATABASE_URI =  os_env.get('VWADAPTOR_SQLALCHEMY_DATABASE_URI','postgresql://localhost/example')  # TODO: Change me
-
-    STORAGE_PROVIDER = os_env.get('VWADAPTOR_STORAGE_PROVIDER','LOCAL') # Can also be S3, GOOGLE_STORAGE, etc...
-    STORAGE_KEY = os_env.get('VWADAPTOR_STORAGE_KEY','')
-    STORAGE_SECRET =  os_env.get('VWADAPTOR_STORAGE_SECRET','')
-    STORAGE_CONTAINER = os_env.get('VWADAPTOR_STORAGE_CONTAINER', os.path.join(APP_DIR,'uploads'))  # a directory path for local, bucket name of cloud
-    STORAGE_SERVER = os_env.get('VWADAPTOR_STORAGE_SERVER',True) # VWADAPTOR_STORAGE_SERVER should be a lowercase string of value true/false
-    STORAGE_SERVER_URL = os_env.get('VWADAPTOR_STORAGE_SERVER_URL', '/files') # The url endpoint to access files on LOCAL provider
-    STORAGE_EXTENSIONS  = os_env.get('VWADAPTOR_STORAGE_EXTENSIONS', '').split(',') # should be a comma seperated list
+    # Database
+    SQLALCHEMY_DATABASE_URI = config('VWADAPTOR_SQLALCHEMY_DATABASE_URI',
+                                     'sqlite:///{0}'.format(os.path.join(PROJECT_ROOT, 'vwadaptor.db')))  # TODO: Change me
+    # Storage
+    # Can also be S3, GOOGLE_STORAGE, etc...
+    STORAGE_PROVIDER = config('VWADAPTOR_STORAGE_PROVIDER', 'LOCAL')
+    STORAGE_KEY = config('VWADAPTOR_STORAGE_KEY', '')
+    STORAGE_SECRET = config('VWADAPTOR_STORAGE_SECRET', '')
+    STORAGE_CONTAINER = config('VWADAPTOR_STORAGE_CONTAINER', os.path.join(
+        APP_DIR, 'uploads'))  # a directory path for local, bucket name of cloud
+    # VWADAPTOR_STORAGE_SERVER should be a lowercase string of value true/false
+    STORAGE_SERVER = config('VWADAPTOR_STORAGE_SERVER', True, cast=bool)
+    # The url endpoint to access files on LOCAL provider
+    STORAGE_SERVER_URL = config('VWADAPTOR_STORAGE_SERVER_URL', '/files')
+    # should be a comma seperated list
+    STORAGE_EXTENSIONS = config('VWADAPTOR_STORAGE_EXTENSIONS', '', cast=Csv())
     STORAGE_ALLOWED_EXTENSIONS = ALL_EXTENSIONS + STORAGE_EXTENSIONS
+    STORAGE_EXTRA = config('VWADAPTOR_STORAGE_EXTRA', '', cast=lambda s: dict(item.split(
+        "=") for item in s.split(",") if s))  # should be a comma seperated list in format: key=value,key2=value2
+
+    # celery worker
+    CELERY_BROKER_URL = config(
+        'VWADAPTOR_CELERY_BROKER_URL', 'redis://localhost:6379/0')
+    CELERY_RESULT_BACKEND = config(
+        'VWADAPTOR_CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+
 class ProdConfig(Config):
     """Production configuration."""
     ENV = 'prod'
     DEBUG = False
-    #SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/example'  # TODO: Change me
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
 
 
@@ -38,21 +54,9 @@ class DevConfig(Config):
     """Development configuration."""
     ENV = 'dev'
     DEBUG = True
-    DB_NAME = 'dev.db'
-    # Put the db file in project root
-    DB_PATH = os.path.join(Config.PROJECT_ROOT, DB_NAME)
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///{0}'.format(DB_PATH)
     DEBUG_TB_ENABLED = True
     ASSETS_DEBUG = True  # Don't bundle/minify static assets
     CACHE_TYPE = 'simple'  # Can be "memcached", "redis", etc.
-
-    STORAGE_PROVIDER= 'LOCAL' # Can also be S3, GOOGLE_STORAGE, etc...
-    STORAGE_KEY = ''
-    STORAGE_SECRET =  ''
-    STORAGE_CONTAINER =  os.path.join(Config.PROJECT_ROOT,'uploads')  # a directory path for local, bucket name of cloud
-    STORAGE_SERVER = True
-    STORAGE_SERVER_URL = '/download' # The url endpoint to access files on LOCAL provider
-
 
 class TestConfig(Config):
     TESTING = True

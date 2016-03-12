@@ -8,6 +8,7 @@ Jinja2==2.7.3
 itsdangerous==0.24
 
 # Database
+psycopg2
 Flask-SQLAlchemy==2.0
 SQLAlchemy==0.9.8
 
@@ -51,4 +52,11 @@ pyee==1.0.1
 
 # for storage
 #Flask-Cloudy==0.13.1
-git+https://github.com/itsrifat/flask-cloudy.git@v-0.13.1.1#egg=Flask-Cloudy
+# This is a fork of flask-cloudy, it extends flsk-cloudy to allow openstack-swift storage
+git+https://github.com/itsrifat/flask-cloudy.git@v-0.13.1.1.libcloud1#egg=Flask-Cloudy
+# This is a slight modified version of the apache-libcloud-0.20.1.
+# It overrides a method in OpenStackStorageDriver in order to allow creation of temporary url for objects stored in it
+git+https://github.com/itsrifat/libcloud.git@vw-1.0#egg=apache-libcloud-vw-1.0
+
+# For config
+python-decouple==3.0

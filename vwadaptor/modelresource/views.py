@@ -1,4 +1,5 @@
 import os
+import json
 
 import flask
 from flask import Blueprint, render_template, request, redirect
@@ -6,6 +7,7 @@ from flask_login import login_required
 from flask import jsonify
 from werkzeug import secure_filename
 from flask import current_app as app
+from flask import send_file
 
 from flask_restless.helpers import to_dict
 from sqlalchemy.inspection import inspect
@@ -13,9 +15,6 @@ from sqlalchemy.inspection import inspect
 from vwadaptor.modelrun.models import ModelRun,ModelResource
 from vwadaptor.constants import PROGRESS_STATES
 from vwadaptor.constants import PROGRESS_STATES_MSG
-import json
-
-from flask import send_file
 
 from vwadaptor.helpers import get_relationships_map, generate_file_name
 from vwadaptor.modelrun.models import ModelResource

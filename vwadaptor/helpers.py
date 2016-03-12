@@ -92,8 +92,10 @@ def model_run_before_delete(instance_id,**kw):
   #       for event in modelrun.progress_events:
   #         event.delete()
 
-# TODO refactor for storage
+
 def model_resource_before_delete(instance_id,**kw):
   resource = ModelResource.query.get(instance_id)
   if resource:
-      storage.delete(resource.resource_name)
+      obj = storage.get(resource.resource_name)
+      if obj:
+          obj.delete()
