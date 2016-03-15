@@ -31,7 +31,7 @@ ENV VWADAPTOR_STORAGE_SERVER true
 ENV VWADAPTOR_STORAGE_SERVER_URL /download
 ENV VWADAPTOR_STORAGE_EXTENSIONS nc,control
 # for local create the directory to keep the files
-RUN mkdir ${VWADAPTOR_STORAGE_CONTAINER}
+RUN mkdir -p ${VWADAPTOR_STORAGE_CONTAINER}
 
 
 # copy source code
@@ -40,7 +40,7 @@ WORKDIR /var/www/vwadaptor
 
 # install requirements
 #RUN echo bakkas
-RUN pip install -r requirements.txt
+RUN pip install -r requirements/dev.txt
 #
 # expose the app port
 EXPOSE ${VWADAPTOR_PORT}

@@ -7,6 +7,10 @@ services:
     env_file: ./.env.dev
     volumes:
       - /data:/vwstorage
+      # This should be path the vwadaptor source code
+      # If using windows docker client, first copy the code to
+      # docker machine and then mount volume like follows
+      - /home/docker/vwadaptor:/var/www/vwadaptor
     depends_on:
       - redis
   redis:
