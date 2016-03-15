@@ -1,4 +1,6 @@
 import os
+import json
+import requests
 
 import flask
 from flask import Blueprint, render_template, request, url_for
@@ -17,11 +19,11 @@ from vwadaptor.helpers import get_relationships_map, generate_file_name
 from vwadaptor.helpers import modelrun_serializer, modelresource_serializer
 from vwadaptor.extensions import storage
 
-from voluptuous import MultipleInvalid
+from vwadaptor.worker import celery
+from celery.result import AsyncResult
+import celery.states as states
 
-import json
-import requests
-from werkzeug.datastructures import FileStorage
+from voluptuous import MultipleInvalid
 
 from vwpy.modelschema import load_schemas
 
@@ -119,6 +121,7 @@ def start(id):
         if needed_resources==available_resources:
           modelrun.progress_state = PROGRESS_STATES['QUEUED']
           modelrun = modelrun.update()
+          task_id = celery.send_task('vwadaptor.run', args=[], kwargs={'modelrun_id':modelrun.id})
           return jsonify({'message':'ModelRun submitted in queue','modelrun':modelrun_serializer(modelrun)}), 200
         else:
           error = {'message':"ModelRun {0} Doesn't have the necessary resources attached".format(modelrun),'missing':list(needed_resources-available_resources)}
