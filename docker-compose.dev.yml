@@ -1,0 +1,13 @@
+version: '2'
+services:
+  vwadaptor:
+    extends:
+      file: docker-compose.yml
+      service: vwadaptor
+    env_file: ./.env.dev
+    volumes:
+      - /data:/vwstorage
+    depends_on:
+      - redis
+  redis:
+    image: redis
