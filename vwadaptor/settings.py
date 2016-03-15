@@ -6,7 +6,34 @@ from decouple import config, Csv
 
 from flask_cloudy import ALL_EXTENSIONS
 
+def parse(s):
+    def isint(s):
+        try:
+            int(s)
+        except:
+            return False
+        return True
+    def isfloat(s):
+        try:
+            float(s)
+        except:
+            return False
+        return True
+    def isbool(s):
+        if s.lower() in ['true','false']:
+            return True
+        return False
 
+    p = dict(item.split(
+            "=") for item in s.split(",") if s)
+    for k in p:
+        if isint(p[k]):
+            p[k]=int(p[k])
+        if isfloat(p[k]):
+            p[k]=float(p[k])
+        if isbool(p[k]):
+            p[k]=json.loads(p[k].lower())
+    return p
 
 class Config(object):
     SECRET_KEY = config('VWADAPTOR_SECRET', 'secret-key')  # TODO: Change me
@@ -34,9 +61,9 @@ class Config(object):
     # should be a comma seperated list
     STORAGE_EXTENSIONS = config('VWADAPTOR_STORAGE_EXTENSIONS', '', cast=Csv())
     STORAGE_ALLOWED_EXTENSIONS = ALL_EXTENSIONS + STORAGE_EXTENSIONS
-    STORAGE_EXTRA = config('VWADAPTOR_STORAGE_EXTRA', '', cast=lambda s: dict(item.split(
-        "=") for item in s.split(",") if s))  # should be a comma seperated list in format: key=value,key2=value2
-
+    #STORAGE_EXTRA = config('VWADAPTOR_STORAGE_EXTRA', '', cast=lambda s: dict(item.split(
+    #    "=") for item in s.split(",") if s))  # should be a comma seperated list in format: key=value,key2=value2
+    STORAGE_EXTRA = config('VWADAPTOR_STORAGE_EXTRA', '',cast=parse)
     # celery worker
     CELERY_BROKER_URL = config(
         'VWADAPTOR_CELERY_BROKER_URL', 'redis://localhost:6379/0')
