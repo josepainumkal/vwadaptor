@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-
+import shutil
 from vwpy.modelschema import load_schemas
 from modelrunner import ModelRunner
 
@@ -27,11 +27,10 @@ def run_model(modelrun_id):
         tmp_dir = os.path.join('/tmp/modelruns/',str(modelrun.id))
         os.makedirs(tmp_dir)
 
-        #user = db.query(User).get(modelrun.user_id)
         modelrun.progress_state = PROGRESS_STATES['RUNNING']
         db.commit()
+
         kwargs = {'db':db,'modelrun_id':modelrun.id}
-        #kwargs.update(mapping)
 
         modelrunner = model_runners[modelrun.model_name]
 
@@ -40,7 +39,6 @@ def run_model(modelrun_id):
         output_resource_map = modelrunner.get_resource_map(type='outputs')
         output_map = resolve_output_map(tmp_dir,output_resource_map)
 
-        #print input_map,output_map
         kwargs.update(input_map)
         kwargs.update(output_map)
         module, method = modelrunner.get_model_runner()
@@ -53,8 +51,10 @@ def run_model(modelrun_id):
         modelrun.progress_state=PROGRESS_STATES['FINISHED']
     except:
         modelrun.progress_state=PROGRESS_STATES['ERROR']
-
     db.commit()
+
+    # clean up
+    shutil.rmtree(tmp_dir)
 
 def create_output_resources(modelrunner,output_map):
     resources = []
