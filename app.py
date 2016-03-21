@@ -24,3 +24,10 @@ app = create_app(config)
 def create_db():
     #db.drop_all()
     db.create_all()
+
+from flask_jwt import jwt_required,current_identity
+
+@app.route('/testjwt',methods=['GET'])
+@jwt_required()
+def test():
+    return "You are: %s" % current_identity.email

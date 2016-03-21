@@ -47,6 +47,10 @@ class Config(object):
     # Database
     SQLALCHEMY_DATABASE_URI = config('VWADAPTOR_SQLALCHEMY_DATABASE_URI',
                                      'sqlite:///{0}'.format(os.path.join(PROJECT_ROOT, 'vwadaptor.db')))  # TODO: Change me
+
+    SQLALCHEMY_BINDS = {
+        'users': config('VWADAPTOR_USER_DATABASE_URI','sqlite:///{0}'.format('/vwauthdb/vwauth.db'))
+    }
     # Storage
     # Can also be S3, GOOGLE_STORAGE, etc...
     STORAGE_PROVIDER = config('VWADAPTOR_STORAGE_PROVIDER', 'LOCAL')
@@ -69,6 +73,8 @@ class Config(object):
         'VWADAPTOR_CELERY_BROKER_URL', 'redis://localhost:6379/0')
     CELERY_RESULT_BACKEND = config(
         'VWADAPTOR_CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+    # jwt
+    JWT_SECRET_KEY = config('VWADAPTOR_JWT_SECRET_KEY','vwplatform')
 
 class ProdConfig(Config):
     """Production configuration."""
