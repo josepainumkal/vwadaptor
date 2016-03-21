@@ -5,9 +5,12 @@ services:
       file: docker-compose.yml
       service: vwadaptor
     env_file: ./.env.dev
+
     volumes:
       - /storage:/vwstorage
-      - /db:/db
+      - /vwdb:/vwdb
+      - /vwauthdb:/vwauthdb
+      # To allow live dev while running the container
       # This should be path the vwadaptor source code
       # If using windows docker client, first copy the code to
       # docker machine and then mount volume like follows
