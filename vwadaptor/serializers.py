@@ -19,20 +19,20 @@ class ModelResourceSchema(Schema):
     resource_type = fields.String()
     resource_size = fields.Integer()
     modelrun_id = fields.Integer()
-    resource_name = fields.Function(lambda obj: os.path.basename(obj.resource_location))
-    #resource_x = fields.Function(lambda obj: os.path.basename(obj.resource_location))
-    resource_url = fields.String()
+    resource_name = fields.String()
+    #resource_url = fields.String()
+    resource_url = fields.Function(lambda obj: url_for(
+        'modelresource.download_resource_by_name', name=obj.resource_name,_external=True))
     created_at = fields.DateTime()
-    #def make_object(self, data):
-    #    return ModelResource(**data)
+
 
 class ModelRunSchema(Schema):
     id = fields.Integer()
     title = fields.String()
     model_name = fields.String()
     created_at = fields.DateTime()
-    resources = fields.Nested(ModelResourceSchema,many=True)
-    progress_events = fields.Nested(ModelProgressSchema,many=True)
+    resources = fields.Nested(ModelResourceSchema, many=True)
+    progress_events = fields.Nested(ModelProgressSchema, many=True)
     progress_state = fields.String()
     progress_value = fields.Float()
     user_id = fields.Integer()
@@ -45,4 +45,4 @@ class UserSchema(Schema):
     first_name = fields.String()
     last_name = fields.String()
     created_at = fields.DateTime()
-    modelruns = fields.Nested(ModelRunSchema,many=True)
+    modelruns = fields.Nested(ModelRunSchema, many=True)

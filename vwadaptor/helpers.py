@@ -5,6 +5,7 @@ from flask_restless.helpers import to_dict
 import json
 from vwadaptor.modelrun.models import ModelRun, ModelResource
 from vwadaptor.serializers import UserSchema, ModelResourceSchema, ModelRunSchema
+from .extensions import storage
 def get_relationships(model):
   '''
     returns the sqlalchemy relationships of a model class
@@ -19,7 +20,7 @@ def randomword(length):
 def generate_file_name(filepath):
   '''
     generates a filename that does not exist in filepath
-  '''  
+  '''
 
 
   dirname = os.path.dirname(filepath)
@@ -37,8 +38,7 @@ def get_relationships_map(model):
     rels[rel]=[]
   return rels
 
-#def modelresource_serializer(instance):
-#  return to_dict(instance,exclude=['resource_location'])
+
 user_schema = UserSchema()
 modelresource_schema = ModelResourceSchema()
 modelrun_schema = ModelRunSchema()
@@ -61,8 +61,6 @@ def modelresource_deserializer(data):
 
 
 
-#def modelrun_serializer(instance):
-#  return to_dict(instance,deep={'user':[],'resources':[]},exclude_relations={'resources':['resource_location']})
 def model_run_after_get_many(result=None, search_params=None, **kw):
   result['objects'] = [modelrun_deserializer(obj) for obj in result['objects']]
 
@@ -97,5 +95,7 @@ def model_run_before_delete(instance_id,**kw):
 
 def model_resource_before_delete(instance_id,**kw):
   resource = ModelResource.query.get(instance_id)
-  if resource and os.path.exists(resource.resource_location):
-    os.remove(resource.resource_location)
+  if resource:
+      obj = storage.get(resource.resource_name)
+      if obj:
+          obj.delete()

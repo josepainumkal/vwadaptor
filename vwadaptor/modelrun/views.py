@@ -1,7 +1,9 @@
 import os
+import json
+import requests
 
 import flask
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, url_for
 from flask_login import login_required
 from flask import jsonify
 from werkzeug import secure_filename
@@ -15,93 +17,114 @@ from vwadaptor.constants import PROGRESS_STATES
 from vwadaptor.constants import PROGRESS_STATES_MSG
 from vwadaptor.helpers import get_relationships_map, generate_file_name
 from vwadaptor.helpers import modelrun_serializer, modelresource_serializer
-#from vwadaptor.validators import modelresource_form_schema
+from vwadaptor.extensions import storage
 
-from voluptuous import MultipleInvalid 
+from vwadaptor.worker import celery
+from celery.result import AsyncResult
+import celery.states as states
 
-import json
-import requests
+from voluptuous import MultipleInvalid
 
+from vwpy.modelschema import load_schemas
+
+#import traceback
 
 blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
                       static_folder="../static")
 
 
 
-@blueprint.route("/<int:id>/upload",methods=['POST'])
+@blueprint.route("/<int:id>/upload", methods=['POST'])
 #@login_required
 def upload(id):
-  modelrun = ModelRun.query.get(id)
-  if modelrun:
-    if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
-      file = request.files['file']
-      if file:
-          filename = secure_filename(file.filename)
-          resource_loc = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-          resource_loc =  os.path.join(app.config['UPLOAD_FOLDER'], generate_file_name(resource_loc))
-          file.save(resource_loc)
+    modelrun = ModelRun.query.get(id)
+    if modelrun:
+      # if modelrun.progress_state in
+      # [PROGRESS_STATES['NOT_STARTED'],PROGRESS_STATES['RUNNING']]:
+        file = request.files['file']
+        if file:
+            filename = secure_filename(file.filename)
+            resource_file = storage.upload(file)
+            resource_type = request.form['resource_type']
+            m = {
+                'modelrun_id': id,
+                'resource_type': resource_type,
+                'resource_name': resource_file.name,
+                #'resource_url': url_for('modelresource.download_resource_by_name', name=resource_file.name, _external=True),
+                'resource_size': resource_file.size
+            }
+            resource = ModelResource.create(**m)
 
-          resource_type=request.form['resource_type']
-          resource_size = os.stat(resource_loc).st_size
-          m = {'modelrun_id':id,'resource_type':resource_type,'resource_location':resource_loc,'resource_size':resource_size}
-          resource = ModelResource.create(**m)
-
-          msg = {"message":"Resource create for model run "+str(id),'resource':modelresource_serializer(resource)}
-          return jsonify(msg), 201
-
-  err = {"message":"Erorr Occured"}
-  return jsonify(err), 500
-
-@blueprint.route("/<int:id>/upload/fromurl",methods=['POST'])
-#@login_required
-def upload_from_url(id):
-  '''
-    expects json. expects url,filename,resource_type
-  '''
-  modelrun = ModelRun.query.get(id)
-  if modelrun:
-    if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
-      try:
-        data = json.loads(request.get_data())
-      except ValueError:
-        return jsonify({'message':'Please specify valid json'}), 400
-      
-      if not ('url' in data and 'resource_type' in data and 'filename' in data):
-        return jsonify({'message':'Invalid Input Provided'}), 400
-
-      try:
-        filedata = requests.get(data['url'])
-        resource_loc = os.path.join(app.config['UPLOAD_FOLDER'], data['filename'])
-        resource_loc =  os.path.join(app.config['UPLOAD_FOLDER'], generate_file_name(resource_loc))
-        with app.open_instance_resource(resource_loc, 'wb') as f:
-            f.write(filedata.content)
-        resource_size = os.stat(resource_loc).st_size
-        m = {'modelrun_id':id,'resource_type':data['resource_type'],'resource_location':resource_loc,'resource_size':resource_size}
-        resource = ModelResource.create(**m)
-        return jsonify({'message':"Resource create for model run "+str(id),'resource':modelresource_serializer(resource)}), 201
-      except Exception, e:
-        print e
-        return jsonify({'message':'Couldn\'t get file from url.'}), 400
-
+            msg = {"message": "Resource create for model run " +
+                   str(id), 'resource': modelresource_serializer(resource)}
+            return jsonify(msg), 201
+        else:
+            err = {"message": "File parameter isn't provided"}
+            return jsonify(err), 400
     else:
-        return jsonify({'message':'Uploading resources to new modelrun is permitted only'}), 400  
-  err = {"message":"Invalid modlerun id supplied"}
-  return jsonify(err), 400
+        err = {"message": "Modelrun doesn't exist"}
+        return jsonify(err), 404
 
-      
+
+@blueprint.route("/<int:id>/upload/fromurl", methods=['POST'])
+def upload_from_url(id):
+    '''
+      expects json. expects url,filename,resource_type
+    '''
+    modelrun = ModelRun.query.get(id)
+    if modelrun:
+        if modelrun.progress_state == PROGRESS_STATES['NOT_STARTED']:
+            try:
+                data = json.loads(request.get_data())
+            except ValueError:
+                return jsonify({'message': 'Please specify valid json'}), 400
+
+            if not ('url' in data and 'resource_type' in data and 'filename' in data):
+                return jsonify({'message': 'Invalid Input Provided'}), 400
+
+            try:
+                filedata = requests.get(data['url'])
+                tmp_loc = os.path.join('/tmp/', data['filename'])
+                with app.open_instance_resource(tmp_loc, 'wb') as f:
+                    f.write(filedata.content)
+                resource_file = storage.upload(tmp_loc)
+                resource_type = data['resource_type']
+                m = {
+                    'modelrun_id': id,
+                    'resource_type': resource_type,
+                    'resource_name': resource_file.name,
+                    #'resource_url': url_for('modelresource.download_resource_by_name', name=resource_file.name, _external=True),
+                    'resource_size': resource_file.size
+                }
+                resource = ModelResource.create(**m)
+                return jsonify({'message': "Resource create for model run " + str(id), 'resource': modelresource_serializer(resource)}), 201
+            except Exception, e:
+                return jsonify({'message': 'Couldn\'t get file from url.'}), 400
+
+        else:
+            return jsonify({'message': 'Uploading resources to new modelrun is permitted only'}), 400
+    err = {"message": "Invalid modlerun id supplied"}
+    return jsonify(err), 400
+
+
+
 @blueprint.route("/<int:id>/start",methods=['PUT'])
 #@login_required
 def start(id):
     modelrun = ModelRun.query.get(id)
     if modelrun:
       if modelrun.progress_state==PROGRESS_STATES['NOT_STARTED']:
-        if modelrun.resources.count():
+        schemas = load_schemas()
+        schema = schemas[modelrun.model_name]
+        needed_resources = set(schema['resources']['inputs'].keys())
+        available_resources = set([r.resource_type for r in modelrun.resources])
+        if needed_resources==available_resources:
           modelrun.progress_state = PROGRESS_STATES['QUEUED']
           modelrun = modelrun.update()
-          rels = get_relationships_map(ModelRun)
+          task_id = celery.send_task('vwadaptor.run', args=[], kwargs={'modelrun_id':modelrun.id})
           return jsonify({'message':'ModelRun submitted in queue','modelrun':modelrun_serializer(modelrun)}), 200
         else:
-          error = {'message':'ModelRun {0} has no resources attached'.format(modelrun)}
+          error = {'message':"ModelRun {0} Doesn't have the necessary resources attached".format(modelrun),'missing':list(needed_resources-available_resources)}
           return jsonify(error), 400
       else:
         error = {'message':PROGRESS_STATES_MSG[modelrun.progress_state].format(modelrun_id=modelrun.id)}
@@ -109,7 +132,7 @@ def start(id):
     else:
       err = {"message":"ModelRun {0} Not Found".format(id)}
       return jsonify(err), 404
-      
+
 
 @blueprint.route("/<int:id>/progress")
 #@login_required
@@ -121,4 +144,3 @@ def progress(id):
     else:
       err = {"error":"ModelRun {0} Not Found".format(id)}
       return jsonify(err), 404
-

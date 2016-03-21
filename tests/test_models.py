@@ -4,7 +4,7 @@ import datetime as dt
 
 import pytest
 
-from vwadaptor.user.models import User, Role
+from vwadaptor.user.models import User
 from .factories import UserFactory
 
 
@@ -12,7 +12,7 @@ from .factories import UserFactory
 class TestUser:
 
     def test_get_by_id(self):
-        user = User('foo', 'foo@bar.com')
+        user = User(username='foo', email='foo@bar.com')
         user.save()
 
         retrieved = User.get_by_id(user.id)
@@ -35,7 +35,7 @@ class TestUser:
         assert bool(user.username)
         assert bool(user.email)
         assert bool(user.created_at)
-        assert user.is_admin is False
+        # assert user.is_admin is False
         assert user.active is True
         assert user.check_password('myprecious')
 
@@ -45,14 +45,14 @@ class TestUser:
         assert user.check_password('foobarbaz123') is True
         assert user.check_password("barfoobaz") is False
 
-    def test_full_name(self):
-        user = UserFactory(first_name="Foo", last_name="Bar")
-        assert user.full_name == "Foo Bar"
+    # def test_full_name(self):
+    #     user = UserFactory(first_name="Foo", last_name="Bar")
+    #     assert user.full_name == "Foo Bar"
 
-    def test_roles(self):
-        role = Role(name='admin')
-        role.save()
-        u = UserFactory()
-        u.roles.append(role)
-        u.save()
-        assert role in u.roles
+    # def test_roles(self):
+    #     role = Role(name='admin')
+    #     role.save()
+    #     u = UserFactory()
+    #     u.roles.append(role)
+    #     u.save()
+    #     assert role in u.roles

@@ -1,0 +1,50 @@
+version: '2'
+services:
+  vwadaptor:
+    extends:
+      file: docker-compose.yml
+      service: vwadaptor
+    env_file: ./.env.dev
+
+    volumes:
+      - /storage:/vwstorage
+      - /vwdb:/vwdb
+      - /vwauthdb:/vwauthdb
+      # To allow live dev while running the container
+      # This should be path the vwadaptor source code
+      # If using windows docker client, first copy the code to
+      # docker machine and then mount volume like follows
+      - /home/docker/vwadaptor:/var/www/vwadaptor
+    depends_on:
+      - redis
+
+  vwworker:
+    extends:
+      file: docker-compose.yml
+      service: vwaworker
+    env_file: ./.env.dev
+    volumes_from:
+      - vwadaptor:rw
+    command: celery -A worker.modelworker worker --loglevel=info --autoreload
+    depends_on:
+      - redis
+
+  vwmonitor:
+    extends:
+      file: docker-compose.yml
+      service: vwmonitor
+    env_file: ./.env.dev
+    volumes_from:
+      - vwadaptor:rw
+      #- /storage:/vwstorage
+      # This should be path the vwadaptor source code
+      # If using windows docker client, first copy the code to
+      # docker machine and then mount volume like follows
+      #- /home/docker/vwadaptor:/var/www/vwadaptor
+    depends_on:
+      - redis
+  redis:
+    image: redis
+    volumes:
+      - /redis:/data
+    command: redis-server --appendonly yes
