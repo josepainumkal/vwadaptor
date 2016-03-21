@@ -15,8 +15,9 @@ from vwadaptor.extensions import (
     login_manager,
     migrate,
     debug_toolbar,
-    storage
+    storage,
 )
+from vwadaptor.auth import jwt
 from vwadaptor import api, user, modelrun, modelresource
 from vwadaptor.user.models import User
 from vwadaptor.modelrun.models import ModelRun, ModelResource, ModelProgress
@@ -51,6 +52,7 @@ def register_extensions(app):
     debug_toolbar.init_app(app)
     migrate.init_app(app, db)
     storage.init_app(app)
+    jwt.init_app(app)
     return None
 
 def register_api(app,db):

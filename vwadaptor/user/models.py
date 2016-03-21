@@ -1,41 +1,43 @@
+# -*- coding: utf-8 -*-
+"""User models."""
 import datetime as dt
 
-from vwadaptor.extensions import bcrypt
-from vwadaptor.database import (
-    Column,
-    db,
-    Model,
-    ReferenceCol,
-    relationship,
-    SurrogatePK
-)
-from flask.ext.login import UserMixin
-#from marshmallow import Schema, fields, pprint
+from flask.ext.security import UserMixin, RoleMixin
 
-class User(SurrogatePK, Model, UserMixin):
+from vwadaptor.extensions import db
 
+roles_users = db.Table('roles_users',
+                       db.Column('user_id', db.Integer(), db.ForeignKey('users.id')),
+                       db.Column('role_id', db.Integer(), db.ForeignKey('roles.id')), info={'bind_key':'users'})
+
+
+class User(UserMixin, db.Model):
     __tablename__ = 'users'
-    username = Column(db.String(80), unique=True, nullable=False)
-    email = Column(db.String(80), unique=True, nullable=False)
-    #: The hashed password
-    password = Column(db.String(128), nullable=True)
-    first_name = Column(db.String(30), nullable=True)
-    last_name = Column(db.String(30), nullable=True)
-    active = Column(db.Boolean(), default=False)
-    #is_admin = Column(db.Boolean(), default=False)
-    created_at = Column(db.DateTime, nullable=False, default=dt.datetime.utcnow)
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+    name = db.Column(db.String(255))
+    affiliation = db.Column(db.String(255))
+    state = db.Column(db.String(255))
+    city = db.Column(db.String(255))
+    active = db.Column(db.Boolean())
+    confirmed_at = db.Column(db.DateTime())
+    roles = db.relationship('Role', secondary=roles_users,
+                            backref=db.backref('users', lazy='dynamic'))
+    last_login_at = db.Column(db.DateTime())
+    current_login_at = db.Column(db.DateTime())
+    last_login_ip = db.Column(db.String(255))
+    current_login_ip = db.Column(db.String(255))
+    login_count = db.Column(db.Integer)
 
-    #modelruns = relationship('ModelRun', backref='user', lazy='dynamic')
+    def __repr__(self):
+        return '<models.User[email=%s]>' % self.email
 
-    def __init__(self,**kwargs):
-        db.Model.__init__(self, **kwargs)
-        if 'password' in kwargs:
-            self.set_password(kwargs['password'])
-        else:
-            self.password = None
 
-    def set_password(self, password):
-        self.password = bcrypt.generate_password_hash(password)
-
-    def check_password(self, value):
-        return bcrypt.check_password_hash(self.password, value)
+class Role(RoleMixin, db.Model):
+    __tablename__ = 'roles'
+    __bind_key__ = 'users'
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
