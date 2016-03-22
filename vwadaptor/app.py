@@ -26,6 +26,8 @@ from vwadaptor.helpers import modelresource_serializer, modelrun_serializer,user
 from vwadaptor.helpers import model_resource_before_delete, model_run_before_delete
 from vwadaptor.helpers import model_run_after_get_many,modelprogress_after_get_many
 
+from vwadaptor.preprocessors import modelrun_preprocessors
+
 def create_app(config_object=ProdConfig):
     """An application factory, as explained here:
         http://flask.pocoo.org/docs/patterns/appfactories/
@@ -58,25 +60,18 @@ def register_extensions(app):
 def register_api(app,db):
     db.app = app
     apimanager = APIManager(app, flask_sqlalchemy_db=db)
-    #apimanager.create_api(Person, methods=['GET', 'POST', 'DELETE'])
-    apimanager.create_api(User,
-        methods=['GET', 'POST','PUT', 'DELETE'],
-        serializer=user_serializer,
-        exclude_columns=['password']
-    )
+
     apimanager.create_api(ModelRun,
         methods=['GET', 'POST','PUT', 'DELETE'],
         serializer=modelrun_serializer,
-        preprocessors={
-            'DELETE_SINGLE':[model_run_before_delete]
-        },
+        preprocessors=modelrun_preprocessors,
         postprocessors={
             'GET_MANY':[model_run_after_get_many]
         },
-        allow_delete_many=True,
+        allow_delete_many=False,
         results_per_page=-1
-
     )
+
     apimanager.create_api(ModelResource,
         methods=['GET', 'POST','PUT', 'DELETE'],
         serializer=modelresource_serializer,
@@ -84,11 +79,12 @@ def register_api(app,db):
             'DELETE_SINGLE':[model_resource_before_delete]
         },
         exclude_columns=[],
-        allow_delete_many=True
-    ),
+        allow_delete_many=False
+    )
+    
     apimanager.create_api(ModelProgress,
-        methods=['GET', 'POST','PUT', 'DELETE'],
-        allow_delete_many=True,
+        methods=['GET'],
+        allow_delete_many=False,
         postprocessors={
             'GET_MANY':[modelprogress_after_get_many]
         }
