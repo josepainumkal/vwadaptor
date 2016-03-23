@@ -11,7 +11,7 @@ def authenticate(username, password):
 
 def load_user(payload):
     user = user_datastore.find_user(id=payload['identity'])
-    if user.confirmed_at:
+    if user and user.confirmed_at:
         return user
     return None
 
