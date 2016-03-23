@@ -18,7 +18,7 @@ def authorize_modelrun(id):
         raise ProcessingException(description='You are not authorized to access this ModelRun', code=401)
 
 @jwt_required()
-def modelresource_before_delete(instance_id=None,**kwargs):
+def modelresource_before_delete(instance_id=None, **kwargs):
     resource = ModelResource.query.get(instance_id)
     if not resource:
         return
@@ -30,14 +30,14 @@ def modelresource_before_delete(instance_id=None,**kwargs):
 
 
 @jwt_required()
-def modelrun_before_post(data=None,**kwargs):
+def modelrun_before_post(data=None, **kwargs):
     user_id = current_identity.id
     data['user_id'] = user_id
     return data
 
 
 @jwt_required()
-def modelrun_before_get(instance_id=None,**kwargs):
+def modelrun_before_get(instance_id=None, **kwargs):
     authorize_modelrun(instance_id)
 
 
@@ -51,7 +51,7 @@ def modelrun_before_get_many(search_params=None, **kwargs):
 
 
 @jwt_required()
-def modelrun_before_delete(instance_id=None,**kwargs):
+def modelrun_before_delete(instance_id=None, **kwargs):
     authorize_modelrun(instance_id)
     modelrun = ModelRun.query.get(instance_id)
     if modelrun:
@@ -72,6 +72,15 @@ def modelrun_authorization_required(fn):
         return fn(*args, **kwargs)
     return decorator
 
+@jwt_required()
+def modelresource_before_get(instance_id, **kwargs):
+    resource = ModelResource.query.get(instance_id)
+    if not resource:
+        return
+    authorize_modelrun(resource.modelrun_id)
+
+def modelresource_before_get_many(search_params=None, **kwargs):
+    raise ProcessingException(description='You are not authorized to access this endpoint', code=401)
 
 modelrun_preprocessors = {
     'GET_SINGLE':[
@@ -85,5 +94,18 @@ modelrun_preprocessors = {
     ],
     'DELETE_SINGLE':[
         modelrun_before_delete
+    ]
+}
+
+
+modelresource_preprocessors = {
+    'GET_SINGLE':[
+        modelresource_before_get
+    ],
+    'GET_MANY':[
+        modelresource_before_get_many
+    ],
+    'DELETE_SINGLE':[
+        modelresource_before_delete
     ]
 }

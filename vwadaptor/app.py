@@ -23,10 +23,10 @@ from vwadaptor.user.models import User
 from vwadaptor.modelrun.models import ModelRun, ModelResource, ModelProgress
 
 from vwadaptor.helpers import modelresource_serializer, modelrun_serializer,user_serializer
-from vwadaptor.helpers import model_resource_before_delete, model_run_before_delete
-from vwadaptor.helpers import model_run_after_get_many,modelprogress_after_get_many
+#from vwadaptor.helpers import model_resource_before_delete, model_run_before_delete
+from vwadaptor.helpers import model_run_after_get_many
 
-from vwadaptor.preprocessors import modelrun_preprocessors
+from vwadaptor.preprocessors import modelrun_preprocessors, modelresource_preprocessors
 
 def create_app(config_object=ProdConfig):
     """An application factory, as explained here:
@@ -75,20 +75,18 @@ def register_api(app,db):
     apimanager.create_api(ModelResource,
         methods=['GET', 'POST','PUT', 'DELETE'],
         serializer=modelresource_serializer,
-        preprocessors={
-            'DELETE_SINGLE':[model_resource_before_delete]
-        },
+        preprocessors=modelresource_preprocessors,
         exclude_columns=[],
         allow_delete_many=False
     )
-    
-    apimanager.create_api(ModelProgress,
-        methods=['GET'],
-        allow_delete_many=False,
-        postprocessors={
-            'GET_MANY':[modelprogress_after_get_many]
-        }
-    )
+
+    # apimanager.create_api(ModelProgress,
+    #     methods=['GET'],
+    #     allow_delete_many=False,
+    #     postprocessors={
+    #         'GET_MANY':[modelprogress_after_get_many]
+    #     }
+    # )
 
 
 def register_blueprints(app):
