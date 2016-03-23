@@ -18,7 +18,7 @@ from vwadaptor.constants import PROGRESS_STATES_MSG
 from vwadaptor.helpers import get_relationships_map, generate_file_name
 from vwadaptor.helpers import modelrun_serializer, modelresource_serializer
 from vwadaptor.extensions import storage
-
+from vwadaptor.preprocessors import modelrun_authorization_required
 from vwadaptor.worker import celery
 from celery.result import AsyncResult
 import celery.states as states
@@ -27,7 +27,7 @@ from voluptuous import MultipleInvalid
 
 from vwpy.modelschema import load_schemas
 
-#import traceback
+from flask_jwt import jwt_required
 
 blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
                       static_folder="../static")
@@ -35,7 +35,8 @@ blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
 
 
 @blueprint.route("/<int:id>/upload", methods=['POST'])
-#@login_required
+@jwt_required()
+@modelrun_authorization_required
 def upload(id):
     modelrun = ModelRun.query.get(id)
     if modelrun:
@@ -67,6 +68,8 @@ def upload(id):
 
 
 @blueprint.route("/<int:id>/upload/fromurl", methods=['POST'])
+@jwt_required()
+@modelrun_authorization_required
 def upload_from_url(id):
     '''
       expects json. expects url,filename,resource_type
@@ -109,7 +112,8 @@ def upload_from_url(id):
 
 
 @blueprint.route("/<int:id>/start",methods=['PUT'])
-#@login_required
+@jwt_required()
+@modelrun_authorization_required
 def start(id):
     modelrun = ModelRun.query.get(id)
     if modelrun:
@@ -135,7 +139,8 @@ def start(id):
 
 
 @blueprint.route("/<int:id>/progress")
-#@login_required
+@jwt_required()
+@modelrun_authorization_required
 def progress(id):
     modelrun = ModelRun.query.get(id)
     if modelrun:
