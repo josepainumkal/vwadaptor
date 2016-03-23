@@ -1,3 +1,4 @@
+from functools import wraps
 from flask_jwt import jwt_required, current_identity
 from flask.ext.restless import ProcessingException
 
@@ -9,15 +10,19 @@ from vwadaptor.modelrun.models import ModelRun, ModelResource
 # def authorize(**kwargs):
 #     pass
 #
+def authorize_modelrun(id):
+    modelrun = ModelRun.query.get(id)
+    #print modelrun
+    #raise ProcessingException(description='You are not authorized to access this ModelRun', code=401)
+    if modelrun and modelrun.user_id != current_identity.id:
+        raise ProcessingException(description='You are not authorized to access this ModelRun', code=401)
 
 @jwt_required()
 def modelresource_before_delete(instance_id=None,**kwargs):
     resource = ModelResource.query.get(instance_id)
     if not resource:
         return
-    modelrun = ModelRun.query.get(resource.modelrun_id)
-    if modelrun.user_id != current_identity.id:
-        raise ProcessingException(description='You are not authorized to access this ModelResource', code=401)
+    authorize_modelrun(resource.modelrun_id)
     obj = storage.get(resource.resource_name)
     if obj:
         obj.delete()
@@ -33,10 +38,7 @@ def modelrun_before_post(data=None,**kwargs):
 
 @jwt_required()
 def modelrun_before_get(instance_id=None,**kwargs):
-    modelrun = ModelRun.query.get(instance_id)
-    if modelrun and modelrun.user_id != current_identity.id:
-        raise ProcessingException(description='You are not authorized to access this ModelRun', code=401)
-    return None
+    authorize_modelrun(instance_id)
 
 
 @jwt_required()
@@ -50,6 +52,7 @@ def modelrun_before_get_many(search_params=None, **kwargs):
 
 @jwt_required()
 def modelrun_before_delete(instance_id=None,**kwargs):
+    authorize_modelrun(instance_id)
     modelrun = ModelRun.query.get(instance_id)
     if modelrun:
         if modelrun.resources:
@@ -59,6 +62,15 @@ def modelrun_before_delete(instance_id=None,**kwargs):
         if modelrun.progress_events:
           for event in modelrun.progress_events:
             event.delete()
+
+
+def modelrun_authorization_required(fn):
+    @wraps(fn)
+    def decorator(*args, **kwargs):
+        id = kwargs['id']
+        authorize_modelrun(id)
+        return fn(*args, **kwargs)
+    return decorator
 
 
 modelrun_preprocessors = {
