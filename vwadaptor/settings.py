@@ -75,6 +75,7 @@ class Config(object):
         'VWADAPTOR_CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
     # jwt
     JWT_SECRET_KEY = config('VWADAPTOR_JWT_SECRET_KEY','vwplatform')
+    JWT_AUTH_HEADER_PREFIX = config('VWADAPTOR_JWT_AUTH_HEADER_PREFIX','JWT')
 
 class ProdConfig(Config):
     """Production configuration."""
