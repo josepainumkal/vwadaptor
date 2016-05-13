@@ -20,6 +20,7 @@ class ModelResourceSchema(Schema):
     resource_size = fields.Integer()
     modelrun_id = fields.Integer()
     resource_name = fields.String()
+    resource_set = fields.String()
     #resource_url = fields.String()
     resource_url = fields.Function(lambda obj: url_for(
         'modelresource.download_resource_by_name', name=obj.resource_name,_external=True))
@@ -29,6 +30,7 @@ class ModelResourceSchema(Schema):
 class ModelRunSchema(Schema):
     id = fields.Integer()
     title = fields.String()
+    description = fields.String()
     model_name = fields.String()
     created_at = fields.DateTime()
     resources = fields.Nested(ModelResourceSchema, many=True)
@@ -36,6 +38,8 @@ class ModelRunSchema(Schema):
     progress_state = fields.String()
     progress_value = fields.Float()
     user_id = fields.Integer()
+    logs = fields.String()
+
 
 
 class UserSchema(Schema):

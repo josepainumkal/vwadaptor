@@ -2,6 +2,7 @@ import os
 import time
 import requests
 import shutil
+import traceback
 from vwpy.modelschema import load_schemas
 from modelrunner import ModelRunner
 
@@ -50,6 +51,7 @@ def run_model(modelrun_id):
         modelrun.resources.extend(resources)
         modelrun.progress_state=PROGRESS_STATES['FINISHED']
     except:
+        modelrun.logs=traceback.format_exc()
         modelrun.progress_state=PROGRESS_STATES['ERROR']
     db.commit()
 

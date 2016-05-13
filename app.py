@@ -16,7 +16,7 @@ else:
 As docker-copose doesn't have any mechanism yet for health check of dependent services
 This is the only way to wait for postgres and any other container(swift perhaps) to start
 '''
-time.sleep(10)
+time.sleep(15)
 app = create_app(config)
 
 

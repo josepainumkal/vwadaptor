@@ -21,6 +21,7 @@ class ModelRun(SurrogatePK, Model):
     __tablename__ = 'modelruns'
 
     title = Column(db.String(80), unique=False, nullable=False)
+    description = Column(db.String(2000), unique=False, nullable=True)
     model_name = Column(db.String(30), nullable=False)
     resources = relationship(
         'ModelResource', backref='modelrun', lazy='dynamic')
@@ -35,6 +36,9 @@ class ModelRun(SurrogatePK, Model):
     created_at = Column(db.DateTime, nullable=False,
                         default=dt.datetime.utcnow)
 
+    #progress_value = Column(db.Float(10), nullable=True, default=0.0)
+    logs = Column(db.Text, unique=False, nullable=True)
+
     def __init__(self, **kwargs):
         db.Model.__init__(self, **kwargs)
 
@@ -45,6 +49,7 @@ class ModelRun(SurrogatePK, Model):
 class ModelResource(SurrogatePK, Model):
     __tablename__ = 'modelresources'
     resource_type = Column(db.String(80), nullable=False)
+    resource_set = Column(db.String(20), nullable=True)
     #resource_url = Column(db.String(200), nullable=True)
     resource_name = Column(db.String(200), nullable=False)
     resource_size = Column(db.Integer)

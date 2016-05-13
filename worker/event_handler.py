@@ -9,8 +9,10 @@ def on_progress(db,modelrun_id,progress_state=PROGRESS_STATES['RUNNING'],**kwarg
     #print 'updating progress'
     progress_event = ModelProgress()
     progress_event.event_name = kwargs['event_name']
-    progress_event.event_description = kwargs['event_description']
-    progress_event.progress_value = kwargs['progress_value']
+    if 'event_description' in kwargs:
+        progress_event.event_description = kwargs['event_description']
+    if 'progress_value' in kwargs:
+        progress_event.progress_value = kwargs['progress_value']
     progress_event.modelrun_id = modelrun_id
     add_progress_event(db,progress_event)
     db.commit()
@@ -23,6 +25,7 @@ def add_progress_event(db,event):
                     ).first()
   if existing_event:
     existing_event.progress_value = event.progress_value
+    existing_event.event_description = event.event_description
   else:
     db.add(event)
 
