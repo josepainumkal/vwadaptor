@@ -21,7 +21,7 @@ class ModelRun(SurrogatePK, Model):
     __tablename__ = 'modelruns'
 
     title = Column(db.String(80), unique=False, nullable=False)
-    description = Column(db.String(2000), unique=False, nullable=True)
+    description = Column(db.Text, unique=False, nullable=True)
     model_name = Column(db.String(30), nullable=False)
     resources = relationship(
         'ModelResource', backref='modelrun', lazy='dynamic')
@@ -67,7 +67,7 @@ class ModelResource(SurrogatePK, Model):
 class ModelProgress(SurrogatePK, Model):
     __tablename__ = 'modelprogress'
     event_name = Column(db.String(80), nullable=False)
-    event_description = Column(db.String(500), nullable=False)
+    event_description = Column(db.Text, nullable=False)
     progress_value = Column(db.Float(), default=0)
     modelrun_id = Column(db.Integer, db.ForeignKey('modelruns.id'))
     created_at = Column(db.DateTime, nullable=True, default=dt.datetime.utcnow)
