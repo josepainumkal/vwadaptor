@@ -1,7 +1,7 @@
 from functools import wraps
 from flask_jwt import jwt_required, current_identity
 from flask.ext.restless import ProcessingException
-
+from flask import current_app as app
 from .extensions import storage
 from vwadaptor.modelrun.models import ModelRun, ModelResource
 
@@ -25,8 +25,11 @@ def modelresource_before_delete(instance_id=None, **kwargs):
     authorize_modelrun(resource.modelrun_id)
     obj = storage.get(resource.resource_name)
     if obj:
-        obj.delete()
-
+        if app.config['STORAGE_PROVIDER']=='LOCAL':
+            path = storage.driver.get_object_cdn_url(obj._obj)
+            os.unlink(path)
+        else:
+            obj.delete()
 
 
 @jwt_required()
