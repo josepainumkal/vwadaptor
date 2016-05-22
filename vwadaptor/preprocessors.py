@@ -1,7 +1,10 @@
+import os
 from functools import wraps
+
+from flask import current_app as app
 from flask_jwt import jwt_required, current_identity
 from flask.ext.restless import ProcessingException
-from flask import current_app as app
+
 from .extensions import storage
 from vwadaptor.modelrun.models import ModelRun, ModelResource
 
