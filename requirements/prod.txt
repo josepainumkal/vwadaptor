@@ -70,3 +70,6 @@ flower==0.8.4
 #git+https://github.com/VirtualWatershed/vw-auth.git@v-1.0.0#egg=vw-auth-v-1.0.0
 Flask-JWT==0.3.2
 Flask-Security==1.7.4
+
+# For config
+git+https://github.com/VirtualWatershed/vwmodels-python-client.git@capstone

@@ -27,6 +27,7 @@ from vwadaptor.helpers import modelresource_serializer, modelrun_serializer,user
 from vwadaptor.helpers import model_run_after_get_many
 
 from vwadaptor.preprocessors import modelrun_preprocessors, modelresource_preprocessors
+from .toolset import toolset as toolset_blueprint
 
 def create_app(config_object=ProdConfig):
     """An application factory, as explained here:
@@ -94,6 +95,7 @@ def register_blueprints(app):
     app.register_blueprint(modelresource.views.blueprint)
     app.register_blueprint(user.views.blueprint)
     app.register_blueprint(api.views.blueprint)
+    app.register_blueprint(toolset_blueprint, url_prefix='/toolset')
     return None
 
 def create_directories(app):

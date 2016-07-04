@@ -76,6 +76,10 @@ class Config(object):
     # jwt
     JWT_SECRET_KEY = config('VWADAPTOR_JWT_SECRET_KEY','vwplatform')
     JWT_AUTH_HEADER_PREFIX = config('VWADAPTOR_JWT_AUTH_HEADER_PREFIX','JWT')
+	
+	#for prms conversion tools
+	UPLOAD_FOLDER = config('UPLOAD_FOLDER', '/var/www/vwadaptor/static/uploadFolder')
+    DOWNLOAD_FOLDER = config('DOWNLOAD_FOLDER', '/var/www/vwadaptor/static/downloadFolder')
 
 class ProdConfig(Config):
     """Production configuration."""
