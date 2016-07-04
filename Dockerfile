@@ -8,6 +8,7 @@ RUN apt-get update -y
 RUN apt-get install -y python-pip python-dev build-essential \
     git wget curl unzip m4 openssh-client
 RUN apt-get install -y libncurses5-dev
+RUN apt-get update -y && apt-get install -y libpq-dev
 
 
 # install nodejs
