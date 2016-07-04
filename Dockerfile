@@ -16,9 +16,6 @@ RUN curl -sL https://deb.nodesource.com/setup_4.x | sh -
 RUN apt-get install -y nodejs
 RUN npm install -g bower
 
-RUN echo '{ "allow_root": true }' > /root/.bowerrc
-RUN bower install
-
 # production or dev?
 ENV VWADAPTOR_ENV dev
 ENV VWADAPTOR_HOST 0.0.0.0
@@ -48,6 +45,9 @@ RUN mkdir -p ${VWADAPTOR_STORAGE_CONTAINER}
 # copy source code
 COPY . /var/www/vwadaptor
 WORKDIR /var/www/vwadaptor
+
+RUN echo '{ "allow_root": true }' > /root/.bowerrc
+RUN bower install
 
 # install requirements
 #RUN echo bakkas
