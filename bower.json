@@ -12,7 +12,7 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "vwadaptor/static/bower_components",
+    "vwadaptor/static/libs",
     "test",
     "tests"
   ],
