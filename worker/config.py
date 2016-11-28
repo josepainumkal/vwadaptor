@@ -31,7 +31,7 @@ storage = Storage(provider=config.STORAGE_PROVIDER, key=config.STORAGE_KEY,
 
 celery= Celery('vwadaptor',
                 broker=config.CELERY_BROKER_URL,
-                backend=config.CELERY_RESULT_BACKEND,CELERYD_POOL_RESTARTS=True)
+                backend=config.CELERY_RESULT_BACKEND,CELERYD_POOL_RESTARTS=True,CELERYD_PREFETCH_MULTIPLIER=1,CELERY_ACKS_LATE=True)
 
 celery.conf.update(
     CELERYD_PREFETCH_MULTIPLIER=1,
