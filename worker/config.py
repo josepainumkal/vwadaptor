@@ -35,5 +35,7 @@ celery= Celery('vwadaptor',
 
 celery.conf.update(
     CELERYD_PREFETCH_MULTIPLIER=1,
-    CELERY_ACKS_LATE=True
+    CELERY_ACKS_LATE=True,
+    CELERY_CREATE_MISSING_QUEUES = True,
+    CELERYD_CONCURRENCY = 1 
 )
