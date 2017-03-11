@@ -39,6 +39,7 @@ class ModelRunSchema(Schema):
     progress_value = fields.Float()
     user_id = fields.Integer()
     logs = fields.String()
+    task_id = fields.String()
 
 
 

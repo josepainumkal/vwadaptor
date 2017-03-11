@@ -11,3 +11,12 @@ else:
 celery= Celery('vwadaptor',
                 broker=config.CELERY_BROKER_URL,
                 backend=config.CELERY_RESULT_BACKEND)
+
+
+celery.conf.update(
+#     CELERYD_PREFETCH_MULTIPLIER=1,
+#     CELERY_ACKS_LATE=True
+      CELERY_CREATE_MISSING_QUEUES = True
+)
+
+
