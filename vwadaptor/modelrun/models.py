@@ -38,6 +38,9 @@ class ModelRun(SurrogatePK, Model):
 
     #progress_value = Column(db.Float(10), nullable=True, default=0.0)
     logs = Column(db.Text, unique=False, nullable=True)
+    task_id = Column(db.String(100), unique=True, nullable=True)
+    gstore_Pushed =  Column(db.String(20), nullable=True, default='false')
+    gstore_id = Column(db.String(100), unique=True, nullable=True)
 
     def __init__(self, **kwargs):
         db.Model.__init__(self, **kwargs)
@@ -55,6 +58,7 @@ class ModelResource(SurrogatePK, Model):
     resource_size = Column(db.Integer)
     modelrun_id = Column(db.Integer, db.ForeignKey('modelruns.id'))
     created_at = Column(db.DateTime, nullable=True, default=dt.datetime.utcnow)
+    gstore_Pushed =  Column(db.String(20), nullable=True, default='false')
 
     def __init__(self, **kwargs):
         db.Model.__init__(self, **kwargs)

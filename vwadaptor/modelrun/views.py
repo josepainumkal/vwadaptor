@@ -29,6 +29,7 @@ from vwpy.modelschema import load_schemas
 
 from flask_jwt import jwt_required
 
+
 blueprint = Blueprint("modelrun", __name__, url_prefix='/api/modelruns',
                       static_folder="../static")
 
@@ -111,6 +112,15 @@ def upload_from_url(id):
 
 
 
+# def queue_length():
+#     r = requests.get("http://192.168.99.100:5555/api/queues/length")
+#     # print r.status_code, r.headers, r.content
+#     resp_dict = json.loads(r.content)
+#     queue_length = int(resp_dict['active_queues'][0]['messages'])
+#     # print queue_length
+#     return queue_length
+
+
 @blueprint.route("/<int:id>/start",methods=['PUT'])
 @jwt_required()
 @modelrun_authorization_required
@@ -124,8 +134,28 @@ def start(id):
         available_resources = set([r.resource_type for r in modelrun.resources])
         if needed_resources==available_resources:
           modelrun.progress_state = PROGRESS_STATES['QUEUED']
-          modelrun = modelrun.update()
+          # modelrun = modelrun.update()
+          
+          # from redis import Redis
+          # redis = Redis(host='workerdb', port=6379, db=0)
+          # # # # default_queue_length = queue_length()
+          # default_queue_length = int(redis.llen('celery'))
+          # maxRentedModelsAllowed = int(redis.get('MaxRentedModelsAllowed'))
+          # currentRentedModels = int(redis.get('CurrentRentedModels'))
+
+          # if default_queue_length>0 and (currentRentedModels < maxRentedModelsAllowed):
+          #   task_id = celery.send_task('vwadaptor.run', args=[], kwargs={'modelrun_id':modelrun.id}, queue='rentedQueue')
+          #   currentRentedModels = currentRentedModels+1
+          #   p = redis.pipeline()
+          #   p.set('CurrentRentedModels', currentRentedModels)
+          #   p.execute()
+          # else:
+          #   task_id = celery.send_task('vwadaptor.run', args=[], kwargs={'modelrun_id':modelrun.id})
+
+
           task_id = celery.send_task('vwadaptor.run', args=[], kwargs={'modelrun_id':modelrun.id})
+          modelrun.task_id = str(task_id)
+          modelrun = modelrun.update()
           return jsonify({'message':'ModelRun submitted in queue','modelrun':modelrun_serializer(modelrun)}), 200
         else:
           error = {'message':"ModelRun {0} Doesn't have the necessary resources attached".format(modelrun),'missing':list(needed_resources-available_resources)}
@@ -138,6 +168,8 @@ def start(id):
       return jsonify(err), 404
 
 
+
+
 @blueprint.route("/<int:id>/progress")
 @jwt_required()
 @modelrun_authorization_required
@@ -148,4 +180,35 @@ def progress(id):
       return jsonify(progress)
     else:
       err = {"error":"ModelRun {0} Not Found".format(id)}
+      return jsonify(err), 404
+
+
+# gstore push - Start
+@blueprint.route("/gstorepush/<int:id>/<uuid:gstore_id>",methods=['PUT'])
+@jwt_required()
+@modelrun_authorization_required
+def gstore_push(id,gstore_id):
+    modelrun = ModelRun.query.get(id)
+    if modelrun:
+      modelrun.gstore_Pushed = str('true')
+      modelrun.gstore_id = str(gstore_id)
+      modelrun=modelrun.update()
+      return jsonify({'message':'Model uploaded to gstore','modelrun':modelrun_serializer(modelrun)}), 200
+    else:
+      err = {"message":"Model Id {0} Not Found".format(id)}
+      return jsonify(err), 404
+
+# gstore push - Start
+@blueprint.route("/gstore_remove/<int:id>/<uuid:gstore_id>",methods=['PUT'])
+@jwt_required()
+@modelrun_authorization_required
+def gstore_remove(id,gstore_id):
+    modelrun = ModelRun.query.get(id)
+    if modelrun:
+      modelrun.gstore_Pushed = str('false')
+      modelrun.gstore_id = None
+      modelrun=modelrun.update()
+      return jsonify({'message':'Model removed from gstore','modelrun':modelrun_serializer(modelrun)}), 200
+    else:
+      err = {"message":"Model Id {0} Not Found".format(id)}
       return jsonify(err), 404

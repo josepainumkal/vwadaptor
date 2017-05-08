@@ -25,6 +25,7 @@ class ModelResourceSchema(Schema):
     resource_url = fields.Function(lambda obj: url_for(
         'modelresource.download_resource_by_name', name=obj.resource_name,_external=True))
     created_at = fields.DateTime()
+    gstore_Pushed =  fields.String()
 
 
 class ModelRunSchema(Schema):
@@ -39,6 +40,9 @@ class ModelRunSchema(Schema):
     progress_value = fields.Float()
     user_id = fields.Integer()
     logs = fields.String()
+    task_id = fields.String()
+    gstore_Pushed =  fields.String()
+    gstore_id = fields.String()
 
 
 
